@@ -1,6 +1,3 @@
-from django.shortcuts import render
-
-# Create your views here.
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 
@@ -10,11 +7,13 @@ from .forms import LoginForm
 def user_login(request):
 
     form = LoginForm()
+    error = ""
 
     if request.method == "POST":
 
-        username = request.POST['username']
-        password = request.POST['password']
+        role = request.POST.get('role')
+        username = request.POST.get('username')
+        password = request.POST.get('password')
 
         user = authenticate(
             request,
@@ -24,21 +23,31 @@ def user_login(request):
 
         if user:
 
-            login(request, user)
-
-            if user.role == 'manager':
-                return redirect('manager_dashboard')
-
-            elif user.role == 'tl':
-                return redirect('tl_dashboard')
+            if user.role != role:
+                error = "Selected role does not match user role."
 
             else:
-                return redirect('member_dashboard')
+                login(request, user)
+
+                if role == 'manager':
+                    return redirect('manager_dashboard')
+
+                elif role == 'tl':
+                    return redirect('tl_dashboard')
+
+                elif role == 'member':
+                    return redirect('member_dashboard')
+
+        else:
+            error = "Invalid username or password."
 
     return render(
         request,
         'accounts/login.html',
-        {'form': form}
+        {
+            'form': form,
+            'error': error
+        }
     )
 
 
