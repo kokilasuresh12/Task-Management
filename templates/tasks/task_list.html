@@ -1,0 +1,34 @@
+<h2>Task List</h2>
+
+<table border="1">
+
+<tr>
+    <th>Task</th>
+    <th>Project</th>
+    <th>Member</th>
+    <th>Status</th>
+    <th>Progress</th>
+</tr>
+
+{% for task in tasks %}
+
+<tr>
+
+<td>{{ task.task_name }}</td>
+<td>{{ task.project }}</td>
+<td>{{ task.assigned_member }}</td>
+<td>{{ task.status }}</td>
+
+<td>
+    {% for p in task.progressupdate_set.all %}
+        {{ p.progress_percentage }}% - {{ p.comment }} <br>
+    {% empty %}
+        No updates
+    {% endfor %}
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
