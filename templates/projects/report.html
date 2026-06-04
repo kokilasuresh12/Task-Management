@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project Report</title>
+</head>
+<body>
+
+<h2>Project Report</h2>
+
+<table border="1">
+
+<tr>
+    <th>Project Name</th>
+    <th>Team Leader</th>
+    <th>Status</th>
+    <th>Deadline</th>
+</tr>
+
+{% for project in projects %}
+
+<tr>
+    <td>{{ project.name }}</td>
+    <td>{{ project.assigned_tl }}</td>
+    <td>{{ project.status }}</td>
+    <td>{{ project.deadline }}</td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+<br>
+
+<a href="{% url 'manager_dashboard' %}">
+    Back
+</a>
+
+</body>
+</html>

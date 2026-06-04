@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project List</title>
+</head>
+<body>
+
+<h2>All Projects</h2>
+
+<table border="1">
+
+<tr>
+    <th>Name</th>
+    <th>Team Leader</th>
+    <th>Deadline</th>
+    <th>Status</th>
+</tr>
+
+{% for project in projects %}
+
+<tr>
+    <td>{{ project.name }}</td>
+    <td>{{ project.assigned_tl }}</td>
+    <td>{{ project.deadline }}</td>
+    <td>{{ project.status }}</td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+</body>
+</html>

@@ -1,22 +1,22 @@
 from django.db import models
-from accounts.models import User
-
+from django.conf import settings
 
 class Project(models.Model):
 
-    PROJECT_STATUS = (
+    STATUS_CHOICES = (
         ('pending', 'Pending'),
         ('in_progress', 'In Progress'),
         ('completed', 'Completed'),
     )
 
-    project_name = models.CharField(max_length=100)
-
+    name = models.CharField(max_length=200)
     description = models.TextField()
 
     assigned_tl = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         limit_choices_to={'role': 'tl'}
     )
 
@@ -24,13 +24,9 @@ class Project(models.Model):
 
     status = models.CharField(
         max_length=20,
-        choices=PROJECT_STATUS,
+        choices=STATUS_CHOICES,
         default='pending'
     )
 
-    created_at = models.DateTimeField(
-        auto_now_add=True
-    )
-
     def __str__(self):
-        return self.project_name
+        return self.name
