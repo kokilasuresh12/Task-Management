@@ -4,6 +4,7 @@ from django import forms
 class LoginForm(forms.Form):
 
     ROLE_CHOICES = [
+        ('admin', 'Admin'),
         ('manager', 'Manager'),
         ('tl', 'Team Leader'),
         ('member', 'Team Member'),

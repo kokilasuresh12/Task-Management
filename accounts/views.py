@@ -24,11 +24,20 @@ def user_login(request):
 
         if user:
 
-            if user.role != role:
+            if role == 'admin':
+                if user.is_staff or user.is_superuser:
+                    login(request, user)
+                    return redirect('/admin/')
+
+                error = "This user does not have admin access."
+
+            elif user.role != role:
                 error = "Selected role does not match user role."
 
             else:
                 login(request, user)
+                if user.is_superuser:
+                    return redirect('/admin/')
 
                 if role == 'manager':
                     return redirect('manager_dashboard')
