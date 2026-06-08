@@ -32,4 +32,10 @@ urlpatterns = [
         views.progress_history,
         name='progress_history'
     ),
+
+    path(
+        'approve/<int:task_id>/',
+        views.approve_task,
+        name='approve_task'
+    ),
 ]

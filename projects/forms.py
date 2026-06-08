@@ -11,7 +11,6 @@ class ProjectForm(forms.ModelForm):
             'description',
             'assigned_tl',
             'deadline',
-            'status'
         ]
 
         widgets = {

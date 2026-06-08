@@ -14,9 +14,58 @@
     <div class="card mb-3">
         <div class="card-body">
             <h5>Welcome Team Leader</h5>
-            <p>Manage tasks and monitor team progress.</p>
+            <p>Assigned Projects: {{ total_projects }}</p>
+            <p>Total Tasks: {{ total_tasks }}</p>
+            <p>Tasks Waiting Review: {{ submitted_tasks }}</p>
         </div>
     </div>
+
+    {% if review_tasks %}
+    <div class="alert alert-warning">
+        <strong>Task waiting for review:</strong>
+        {% for task in review_tasks %}
+            {{ task.task_name }}{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <h4>My Assigned Projects</h4>
+
+    <table class="table table-bordered">
+        <tr>
+            <th>Project</th>
+            <th>Deadline</th>
+            <th>Status</th>
+            <th>Update Status</th>
+        </tr>
+
+        {% for project in projects %}
+        <tr>
+            <td>{{ project.name }}</td>
+            <td>{{ project.deadline }}</td>
+            <td>{{ project.status }}</td>
+            <td>
+                <form method="POST" action="{% url 'update_project_status' project.id %}">
+                    {% csrf_token %}
+                    <select name="status" class="form-select form-select-sm mb-2">
+                        {% for value, label in project_status_choices %}
+                            <option value="{{ value }}" {% if project.status == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        Save
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">No projects assigned yet.</td>
+        </tr>
+        {% endfor %}
+    </table>
 
     <div class="d-grid gap-2 col-4">
 

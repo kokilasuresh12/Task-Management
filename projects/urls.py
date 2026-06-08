@@ -20,4 +20,10 @@ urlpatterns = [
         views.manager_report,
         name='manager_report'
     ),
+
+    path(
+        'update-status/<int:project_id>/',
+        views.update_project_status,
+        name='update_project_status'
+    ),
 ]

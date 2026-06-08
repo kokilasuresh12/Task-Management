@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 
 from .forms import LoginForm
 from projects.models import Project
@@ -68,7 +69,11 @@ def user_logout(request):
     return redirect('login')
 
 
+@login_required
 def manager_dashboard(request):
+
+    if request.user.role != 'manager' and not request.user.is_superuser:
+        return redirect('login')
 
     total_projects = Project.objects.count()
 
@@ -101,15 +106,43 @@ def manager_dashboard(request):
     )
 
 
+@login_required
 def tl_dashboard(request):
+
+    if request.user.role != 'tl':
+        return redirect('login')
+
+    projects = Project.objects.filter(
+        assigned_tl=request.user
+    )
+
+    tasks = Task.objects.filter(
+        project__assigned_tl=request.user
+    )
+
+    submitted_tasks = tasks.filter(
+        status='submitted'
+    )
 
     return render(
         request,
-        'accounts/tl_dashboard.html'
+        'accounts/tl_dashboard.html',
+        {
+            'projects': projects,
+            'total_projects': projects.count(),
+            'total_tasks': tasks.count(),
+            'submitted_tasks': submitted_tasks.count(),
+            'review_tasks': submitted_tasks,
+            'project_status_choices': Project.STATUS_CHOICES,
+        }
     )
 
 
+@login_required
 def member_dashboard(request):
+
+    if request.user.role != 'member':
+        return redirect('login')
 
     user = request.user
 
@@ -127,6 +160,10 @@ def member_dashboard(request):
         status='completed'
     ).count()
 
+    review_tasks = assigned_tasks.filter(
+        status='submitted'
+    )
+
     if total_tasks > 0:
         progress_percentage = int(
             (completed_tasks / total_tasks) * 100
@@ -139,6 +176,7 @@ def member_dashboard(request):
         'completed_tasks': completed_tasks,
         'pending_tasks': pending_tasks,
         'progress_percentage': progress_percentage,
+        'review_tasks': review_tasks,
     }
 
     return render(
