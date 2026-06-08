@@ -16,6 +16,18 @@ urlpatterns = [
     ),
 
     path(
+        'web-admin/',
+        views.web_admin_dashboard,
+        name='web_admin_dashboard'
+    ),
+
+    path(
+        'web-admin/add-user/',
+        views.web_admin_add_user,
+        name='web_admin_add_user'
+    ),
+
+    path(
         'manager/',
         views.manager_dashboard,
         name='manager_dashboard'

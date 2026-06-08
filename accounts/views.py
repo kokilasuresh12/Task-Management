@@ -1,8 +1,12 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
 
-from .forms import LoginForm
+from .forms import LoginForm, WebAdminUserCreationForm
 from projects.models import Project
 from tasks.models import Task
 
@@ -28,7 +32,7 @@ def user_login(request):
             if role == 'admin':
                 if user.is_staff or user.is_superuser:
                     login(request, user)
-                    return redirect('/admin/')
+                    return redirect('web_admin_dashboard')
 
                 error = "This user does not have admin access."
 
@@ -38,7 +42,7 @@ def user_login(request):
             else:
                 login(request, user)
                 if user.is_superuser:
-                    return redirect('/admin/')
+                    return redirect('web_admin_dashboard')
 
                 if role == 'manager':
                     return redirect('manager_dashboard')
@@ -58,6 +62,93 @@ def user_login(request):
         {
             'form': form,
             'error': error
+        }
+    )
+
+
+def send_new_user_credentials(request, user, raw_password):
+    if not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD:
+        messages.error(
+            request,
+            'User was created, but email was not sent. '
+            'EMAIL_HOST_USER and EMAIL_HOST_PASSWORD are required.'
+        )
+        return
+
+    try:
+        send_mail(
+            subject='Your task management account has been created',
+            message=(
+                f'Hello {user.username},\n\n'
+                'An account has been created for you in the task '
+                'management system.\n\n'
+                f'Username: {user.username}\n'
+                f'Password: {raw_password}\n'
+                f'Login URL: {request.build_absolute_uri("/")}\n\n'
+                'Please log in using these credentials.'
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            fail_silently=False,
+        )
+        messages.success(
+            request,
+            f'User created and credentials emailed to {user.email}.'
+        )
+    except Exception as error:
+        messages.error(
+            request,
+            f'User was created, but email was not sent: {error}'
+        )
+
+
+@login_required
+def web_admin_dashboard(request):
+
+    if not request.user.is_staff and not request.user.is_superuser:
+        return redirect('login')
+
+    User = get_user_model()
+    users = User.objects.order_by('role', 'username')
+
+    context = {
+        'total_users': users.count(),
+        'managers': users.filter(role='manager').count(),
+        'team_leaders': users.filter(role='tl').count(),
+        'members': users.filter(role='member').count(),
+        'users': users,
+    }
+
+    return render(
+        request,
+        'accounts/web_admin_dashboard.html',
+        context
+    )
+
+
+@login_required
+def web_admin_add_user(request):
+
+    if not request.user.is_staff and not request.user.is_superuser:
+        return redirect('login')
+
+    if request.method == 'POST':
+        form = WebAdminUserCreationForm(request.POST)
+
+        if form.is_valid():
+            raw_password = form.cleaned_data['password1']
+            user = form.save()
+            send_new_user_credentials(request, user, raw_password)
+            return redirect('web_admin_dashboard')
+
+    else:
+        form = WebAdminUserCreationForm()
+
+    return render(
+        request,
+        'accounts/web_admin_add_user.html',
+        {
+            'form': form
         }
     )
 
