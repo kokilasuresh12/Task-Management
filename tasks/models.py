@@ -37,6 +37,15 @@ class Task(models.Model):
         default='pending'
     )
 
+    google_meet_link = models.URLField(
+        blank=True
+    )
+
+    presentation_requested_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

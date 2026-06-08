@@ -23,6 +23,12 @@
 <h2 class="fw-bold">Task List</h2>
 <p class="text-secondary mb-4">Monitor progress and approve submitted work</p>
 
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+    {% endfor %}
+{% endif %}
+
 <div class="panel table-responsive">
 <table class="table table-hover align-middle">
 
@@ -58,10 +64,33 @@
     <a href="{% url 'progress_history' task.id %}">History</a>
 
     {% if task.status == 'submitted' %}
+        <form method="POST" action="{% url 'share_meet_link' task.id %}" class="mt-2">
+            {% csrf_token %}
+            <div class="input-group input-group-sm">
+                <input
+                    type="url"
+                    name="google_meet_link"
+                    value="{{ task.google_meet_link }}"
+                    class="form-control"
+                    placeholder="https://meet.google.com/..."
+                    required
+                >
+                <button type="submit" class="btn btn-outline-primary">Send Meet</button>
+            </div>
+        </form>
+
         <form method="POST" action="{% url 'approve_task' task.id %}" class="d-inline">
             {% csrf_token %}
-            <button type="submit" class="btn btn-sm btn-success">Approve</button>
+            <button type="submit" class="btn btn-sm btn-success mt-2">Approve</button>
         </form>
+    {% endif %}
+
+    {% if task.google_meet_link %}
+        <div class="small mt-2">
+            <a href="{{ task.google_meet_link }}" target="_blank" rel="noopener">
+                Presentation Meet
+            </a>
+        </div>
     {% endif %}
 </td>
 

@@ -6,6 +6,7 @@
     <th>Task</th>
     <th>Progress</th>
     <th>Status</th>
+    <th>Presentation Meet</th>
     <th>Action</th>
 </tr>
 
@@ -18,6 +19,16 @@
 <td>{{ task.progress }}%</td>
 
 <td>{{ task.status }}</td>
+
+<td>
+{% if task.google_meet_link %}
+    <a href="{{ task.google_meet_link }}" target="_blank" rel="noopener">
+        Join Meet
+    </a>
+{% else %}
+    Not shared yet
+{% endif %}
+</td>
 
 <td>
 

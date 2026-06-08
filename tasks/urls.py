@@ -38,4 +38,10 @@ urlpatterns = [
         views.approve_task,
         name='approve_task'
     ),
+
+    path(
+        'share-meet/<int:task_id>/',
+        views.share_meet_link,
+        name='share_meet_link'
+    ),
 ]

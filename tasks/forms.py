@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth import get_user_model
+from urllib.parse import urlparse
 from .models import Task, ProgressUpdate
 
 
@@ -53,6 +54,38 @@ class ProgressForm(forms.ModelForm):
                 attrs={
                     'min': 0,
                     'max': 100,
+                }
+            )
+        }
+
+
+class MeetLinkForm(forms.ModelForm):
+
+    def clean_google_meet_link(self):
+        google_meet_link = self.cleaned_data['google_meet_link']
+        parsed_url = urlparse(google_meet_link)
+
+        if parsed_url.scheme != 'https' or parsed_url.netloc != 'meet.google.com':
+            raise forms.ValidationError('Enter a valid Google Meet link.')
+
+        return google_meet_link
+
+    class Meta:
+        model = Task
+
+        fields = [
+            'google_meet_link',
+        ]
+
+        labels = {
+            'google_meet_link': 'Google Meet link',
+        }
+
+        widgets = {
+            'google_meet_link': forms.URLInput(
+                attrs={
+                    'placeholder': 'https://meet.google.com/...',
+                    'class': 'form-control form-control-sm',
                 }
             )
         }
