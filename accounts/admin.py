@@ -1,5 +1,6 @@
 
 from django.contrib import admin
+from django.contrib import messages
 from django.contrib.auth.admin import UserAdmin
 from django.conf import settings
 from django.core.mail import send_mail
@@ -74,18 +75,39 @@ class CustomUserAdmin(UserAdmin):
         if not change and obj.email and raw_password:
             login_url = request.build_absolute_uri('/')
 
-            send_mail(
-                subject='Your task management account has been created',
-                message=(
-                    f'Hello {obj.username},\n\n'
-                    'An account has been created for you in the task '
-                    'management system.\n\n'
-                    f'Username: {obj.username}\n'
-                    f'Password: {raw_password}\n'
-                    f'Login URL: {login_url}\n\n'
-                    'Please log in using these credentials.'
-                ),
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[obj.email],
-                fail_silently=False,
-            )
+            if not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD:
+                self.message_user(
+                    request,
+                    'User was created, but email was not sent. '
+                    'EMAIL_HOST_USER and EMAIL_HOST_PASSWORD are required.',
+                    level=messages.ERROR,
+                )
+                return
+
+            try:
+                send_mail(
+                    subject='Your task management account has been created',
+                    message=(
+                        f'Hello {obj.username},\n\n'
+                        'An account has been created for you in the task '
+                        'management system.\n\n'
+                        f'Username: {obj.username}\n'
+                        f'Password: {raw_password}\n'
+                        f'Login URL: {login_url}\n\n'
+                        'Please log in using these credentials.'
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[obj.email],
+                    fail_silently=False,
+                )
+                self.message_user(
+                    request,
+                    f'Login credentials were emailed to {obj.email}.',
+                    level=messages.SUCCESS,
+                )
+            except Exception as error:
+                self.message_user(
+                    request,
+                    f'User was created, but email was not sent: {error}',
+                    level=messages.ERROR,
+                )

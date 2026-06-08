@@ -18,6 +18,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DEFAULT_DB_PATH = BASE_DIR / 'db.sqlite3'
 DATABASE_PATH = Path(os.environ.get('SQLITE_DB_PATH', DEFAULT_DB_PATH))
 
+ENV_PATH = BASE_DIR / '.env'
+
+if ENV_PATH.exists():
+    for line in ENV_PATH.read_text().splitlines():
+        line = line.strip()
+
+        if not line or line.startswith('#') or '=' not in line:
+            continue
+
+        key, value = line.split('=', 1)
+        key = key.strip()
+
+        if key.startswith('$env:'):
+            key = key[5:]
+
+        os.environ.setdefault(key, value.strip().strip('"').strip("'"))
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
@@ -131,9 +148,10 @@ EMAIL_BACKEND = os.environ.get(
 )
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
-EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true'
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '').replace(' ', '')
+EMAIL_TIMEOUT = int(os.environ.get('EMAIL_TIMEOUT', 20))
 DEFAULT_FROM_EMAIL = os.environ.get(
     'DEFAULT_FROM_EMAIL',
     EMAIL_HOST_USER or 'Task Management <noreply@example.com>'
