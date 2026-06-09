@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -6,7 +6,8 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 
-from .forms import LoginForm, WebAdminUserCreationForm
+from .forms import LoginForm, TeamGroupForm, WebAdminUserCreationForm
+from .models import TeamGroup, TeamGroupMember
 from projects.models import Project
 from tasks.models import Task
 
@@ -110,6 +111,13 @@ def web_admin_dashboard(request):
 
     User = get_user_model()
     users = User.objects.order_by('role', 'username')
+    groups = TeamGroup.objects.select_related(
+        'manager'
+    ).prefetch_related(
+        'leader_assignments__team_leader',
+        'member_assignments__team_leader',
+        'member_assignments__member'
+    ).order_by('name')
 
     context = {
         'total_users': users.count(),
@@ -117,6 +125,7 @@ def web_admin_dashboard(request):
         'team_leaders': users.filter(role='tl').count(),
         'members': users.filter(role='member').count(),
         'users': users,
+        'groups': groups,
     }
 
     return render(
@@ -149,6 +158,134 @@ def web_admin_add_user(request):
         'accounts/web_admin_add_user.html',
         {
             'form': form
+        }
+    )
+
+
+@login_required
+def web_admin_delete_user(request, user_id):
+
+    if not request.user.is_staff and not request.user.is_superuser:
+        return redirect('login')
+
+    if request.method != 'POST':
+        return redirect('web_admin_dashboard')
+
+    User = get_user_model()
+    user_obj = get_object_or_404(User, id=user_id)
+
+    if user_obj == request.user:
+        messages.error(request, 'You cannot delete your own account.')
+        return redirect('web_admin_dashboard')
+
+    username = user_obj.username
+    user_obj.delete()
+    messages.success(request, f'User {username} deleted successfully.')
+
+    return redirect('web_admin_dashboard')
+
+
+@login_required
+def web_admin_delete_group(request, group_id):
+
+    if not request.user.is_staff and not request.user.is_superuser:
+        return redirect('login')
+
+    if request.method != 'POST':
+        return redirect('web_admin_dashboard')
+
+    group = get_object_or_404(TeamGroup, id=group_id)
+    group_name = group.name
+    group.delete()
+    messages.success(request, f'Group {group_name} deleted successfully.')
+
+    return redirect('web_admin_dashboard')
+
+
+@login_required
+def web_admin_create_group(request):
+
+    if not request.user.is_staff and not request.user.is_superuser:
+        return redirect('login')
+
+    if request.method == 'POST':
+        form = TeamGroupForm(request.POST)
+
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Group created successfully.')
+            return redirect('web_admin_dashboard')
+
+    else:
+        form = TeamGroupForm()
+
+    team_leader_member_fields = []
+    allocation_rows = []
+
+    for team_leader in form.fields['team_leaders'].queryset:
+        team_leader_member_fields.append(
+            {
+                'team_leader': team_leader,
+                'field': form[f'members_for_tl_{team_leader.id}'],
+            }
+        )
+
+    if request.method == 'POST':
+        for team_leader_id in request.POST.getlist('team_leaders'):
+            member_ids = [
+                int(member_id)
+                for member_id in request.POST.getlist(f'members_for_tl_{team_leader_id}')
+                if member_id.isdigit()
+            ]
+
+            allocation_rows.append(
+                {
+                    'team_leader_id': team_leader_id,
+                    'member_ids': member_ids,
+                }
+            )
+
+    if not allocation_rows:
+        allocation_rows.append(
+            {
+                'team_leader_id': '',
+                'member_ids': [],
+            }
+        )
+
+    allocated_members = {
+        assignment.member_id: assignment.group.name
+        for assignment in TeamGroupMember.objects.select_related('group')
+    }
+    member_options = []
+
+    for member in get_user_model().objects.filter(
+        role='member'
+    ).order_by('username'):
+        member_options.append(
+            {
+                'id': member.id,
+                'username': member.username,
+                'allocated_group': allocated_members.get(member.id),
+            }
+        )
+
+    return render(
+        request,
+        'accounts/web_admin_create_group.html',
+        {
+            'form': form,
+            'team_leader_member_fields': team_leader_member_fields,
+            'team_leaders': form.fields['team_leaders'].queryset,
+            'member_options': member_options,
+            'available_members': (
+                form.fields[
+                    f'members_for_tl_{form.fields["team_leaders"].queryset.first().id}'
+                ].queryset
+                if form.fields['team_leaders'].queryset.exists()
+                else []
+            ),
+            'allocation_rows': allocation_rows,
         }
     )
 
@@ -200,12 +337,17 @@ def manager_dashboard(request):
 @login_required
 def tl_dashboard(request):
 
-    if request.user.role != 'tl':
+    if request.user.role != 'tl' and not request.user.is_staff and not request.user.is_superuser:
         return redirect('login')
 
-    projects = Project.objects.filter(
-        assigned_tl=request.user
-    )
+    if request.user.role == 'tl':
+        projects = Project.objects.filter(
+            assigned_tl=request.user
+        )
+        page_subtitle = 'Your assigned projects and review queue'
+    else:
+        projects = Project.objects.all()
+        page_subtitle = 'Admin view of all team leader work'
 
     tasks = Task.objects.filter(
         project__assigned_tl=request.user
@@ -225,6 +367,7 @@ def tl_dashboard(request):
             'submitted_tasks': submitted_tasks.count(),
             'review_tasks': submitted_tasks,
             'project_status_choices': Project.STATUS_CHOICES,
+            'page_subtitle': page_subtitle,
         }
     )
 
@@ -232,14 +375,19 @@ def tl_dashboard(request):
 @login_required
 def member_dashboard(request):
 
-    if request.user.role != 'member':
+    if request.user.role != 'member' and not request.user.is_staff and not request.user.is_superuser:
         return redirect('login')
 
-    user = request.user
-
-    assigned_tasks = Task.objects.filter(
-        assigned_member=user
-    )
+    if request.user.role == 'member':
+        assigned_tasks = Task.objects.filter(
+            assigned_member=request.user
+        )
+        page_subtitle = 'Your assigned task progress'
+    else:
+        assigned_tasks = Task.objects.filter(
+            assigned_member__role='member'
+        )
+        page_subtitle = 'Admin view of all team member work'
 
     total_tasks = assigned_tasks.count()
 
@@ -268,6 +416,7 @@ def member_dashboard(request):
         'pending_tasks': pending_tasks,
         'progress_percentage': progress_percentage,
         'review_tasks': review_tasks,
+        'page_subtitle': page_subtitle,
     }
 
     return render(

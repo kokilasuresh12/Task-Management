@@ -28,6 +28,24 @@ urlpatterns = [
     ),
 
     path(
+        'web-admin/create-group/',
+        views.web_admin_create_group,
+        name='web_admin_create_group'
+    ),
+
+    path(
+        'web-admin/delete-user/<int:user_id>/',
+        views.web_admin_delete_user,
+        name='web_admin_delete_user'
+    ),
+
+    path(
+        'web-admin/delete-group/<int:group_id>/',
+        views.web_admin_delete_group,
+        name='web_admin_delete_group'
+    ),
+
+    path(
         'manager/',
         views.manager_dashboard,
         name='manager_dashboard'

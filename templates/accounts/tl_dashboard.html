@@ -9,7 +9,17 @@
 
 <div class="container mt-4">
 
-    <h1 class="mb-4">Team Leader Dashboard</h1>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <div>
+            <h1 class="mb-1">Team Leader Dashboard</h1>
+            <p class="text-secondary mb-0">{{ page_subtitle }}</p>
+        </div>
+        {% if request.user.is_staff or request.user.is_superuser %}
+            <a href="{% url 'web_admin_dashboard' %}" class="btn btn-outline-secondary">
+                Back to Admin Dashboard
+            </a>
+        {% endif %}
+    </div>
 
     <div class="card mb-3">
         <div class="card-body">
@@ -36,7 +46,9 @@
             <th>Project</th>
             <th>Deadline</th>
             <th>Status</th>
-            <th>Update Status</th>
+            {% if request.user.role == 'tl' %}
+                <th>Update Status</th>
+            {% endif %}
         </tr>
 
         {% for project in projects %}
@@ -44,42 +56,48 @@
             <td>{{ project.name }}</td>
             <td>{{ project.deadline }}</td>
             <td>{{ project.status }}</td>
-            <td>
-                <form method="POST" action="{% url 'update_project_status' project.id %}">
-                    {% csrf_token %}
-                    <select name="status" class="form-select form-select-sm mb-2">
-                        {% for value, label in project_status_choices %}
-                            <option value="{{ value }}" {% if project.status == value %}selected{% endif %}>
-                                {{ label }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                    <button type="submit" class="btn btn-sm btn-primary">
-                        Save
-                    </button>
-                </form>
-            </td>
+            {% if request.user.role == 'tl' %}
+                <td>
+                    <form method="POST" action="{% url 'update_project_status' project.id %}">
+                        {% csrf_token %}
+                        <select name="status" class="form-select form-select-sm mb-2">
+                            {% for value, label in project_status_choices %}
+                                <option value="{{ value }}" {% if project.status == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            Save
+                        </button>
+                    </form>
+                </td>
+            {% endif %}
         </tr>
         {% empty %}
         <tr>
-            <td colspan="4">No projects assigned yet.</td>
+            <td colspan="{% if request.user.role == 'tl' %}4{% else %}3{% endif %}">No projects assigned yet.</td>
         </tr>
         {% endfor %}
     </table>
 
     <div class="d-grid gap-2 col-4">
 
-        <a href="{% url 'create_task' %}" class="btn btn-primary">
-            Create Task
-        </a>
+        {% if request.user.role == 'tl' %}
+            <a href="{% url 'create_task' %}" class="btn btn-primary">
+                Create Task
+            </a>
+        {% endif %}
 
         <a href="{% url 'task_list' %}" class="btn btn-success">
             View Tasks
         </a>
 
-        <a href="{% url 'logout' %}" class="btn btn-danger">
-            Logout
-        </a>
+        {% if not request.user.is_staff and not request.user.is_superuser %}
+            <a href="{% url 'logout' %}" class="btn btn-danger">
+                Logout
+            </a>
+        {% endif %}
 
     </div>
 

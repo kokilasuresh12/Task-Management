@@ -38,7 +38,17 @@
 
 <div class="container mt-4">
 
-    <h1 class="mb-4">Team Member Dashboard</h1>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <div>
+            <h1 class="mb-1">Team Member Dashboard</h1>
+            <p class="text-secondary mb-0">{{ page_subtitle }}</p>
+        </div>
+        {% if request.user.is_staff or request.user.is_superuser %}
+            <a href="{% url 'web_admin_dashboard' %}" class="btn btn-outline-secondary">
+                Back to Admin Dashboard
+            </a>
+        {% endif %}
+    </div>
 
     <div class="row">
 
@@ -101,13 +111,21 @@
 
     <br>
 
-    <a href="{% url 'member_tasks' %}" class="btn btn-primary">
-        View My Tasks
-    </a>
+    {% if request.user.role == 'member' %}
+        <a href="{% url 'member_tasks' %}" class="btn btn-primary">
+            View My Tasks
+        </a>
+    {% else %}
+        <a href="{% url 'task_list' %}" class="btn btn-primary">
+            View Tasks
+        </a>
+    {% endif %}
 
-    <a href="{% url 'logout' %}" class="btn btn-danger">
-        Logout
-    </a>
+    {% if not request.user.is_staff and not request.user.is_superuser %}
+        <a href="{% url 'logout' %}" class="btn btn-danger">
+            Logout
+        </a>
+    {% endif %}
 
 </div>
 

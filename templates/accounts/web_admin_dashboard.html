@@ -22,7 +22,10 @@
         <strong>Task Management</strong>
         <div class="d-flex gap-2 flex-wrap">
             <a href="{% url 'web_admin_add_user' %}" class="btn btn-sm btn-primary">Add User</a>
+            <a href="{% url 'web_admin_create_group' %}" class="btn btn-sm btn-outline-primary">Create Group</a>
             <a href="{% url 'manager_dashboard' %}" class="btn btn-sm btn-outline-secondary">Manager View</a>
+            <a href="{% url 'tl_dashboard' %}" class="btn btn-sm btn-outline-secondary">TL View</a>
+            <a href="{% url 'member_dashboard' %}" class="btn btn-sm btn-outline-secondary">Team Member View</a>
             <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-danger">Logout</a>
         </div>
     </div>
@@ -68,7 +71,6 @@
     <div class="panel">
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <h2 class="h5 m-0">Users</h2>
-            <a href="{% url 'web_admin_add_user' %}" class="btn btn-primary btn-sm">Add User</a>
         </div>
 
         <div class="table-responsive">
@@ -79,6 +81,7 @@
                     <th>Role</th>
                     <th>Phone</th>
                     <th>Active</th>
+                    <th>Action</th>
                 </tr>
                 {% for user_obj in users %}
                 <tr>
@@ -93,10 +96,71 @@
                             <span class="badge text-bg-secondary">No</span>
                         {% endif %}
                     </td>
+                    <td>
+                        {% if user_obj.id != request.user.id %}
+                            <form method="POST" action="{% url 'web_admin_delete_user' user_obj.id %}" class="m-0" onsubmit="return confirm('Delete user {{ user_obj.username }}?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                            </form>
+                        {% else %}
+                            <span class="text-secondary">Current user</span>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5">No users found.</td>
+                    <td colspan="6">No users found.</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+
+    <div class="panel mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h2 class="h5 m-0">Groups</h2>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <tr>
+                    <th>Group</th>
+                    <th>Manager</th>
+                    <th>Team Leaders</th>
+                    <th>Members</th>
+                    <th>Action</th>
+                </tr>
+                {% for group in groups %}
+                <tr>
+                    <td>{{ group.name }}</td>
+                    <td>{{ group.manager.username }}</td>
+                    <td>
+                        {% for leader_assignment in group.leader_assignments.all %}
+                            <span class="badge text-bg-primary">{{ leader_assignment.team_leader.username }}</span>
+                        {% empty %}
+                            -
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% for member_assignment in group.member_assignments.all %}
+                            <div>
+                                {{ member_assignment.member.username }}
+                                <span class="text-secondary">under {{ member_assignment.team_leader.username }}</span>
+                            </div>
+                        {% empty %}
+                            -
+                        {% endfor %}
+                    </td>
+                    <td>
+                        <form method="POST" action="{% url 'web_admin_delete_group' group.id %}" class="m-0" onsubmit="return confirm('Delete group {{ group.name }}?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">No groups created yet.</td>
                 </tr>
                 {% endfor %}
             </table>

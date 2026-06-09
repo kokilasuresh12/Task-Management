@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.admin import UserAdmin
 from django.conf import settings
 from django.core.mail import send_mail
-from .models import User
+from .models import TeamGroup, TeamGroupLeader, TeamGroupMember, User
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
@@ -111,3 +111,21 @@ class CustomUserAdmin(UserAdmin):
                     f'User was created, but email was not sent: {error}',
                     level=messages.ERROR,
                 )
+
+
+class TeamGroupLeaderInline(admin.TabularInline):
+    model = TeamGroupLeader
+    extra = 1
+
+
+class TeamGroupMemberInline(admin.TabularInline):
+    model = TeamGroupMember
+    extra = 1
+
+
+@admin.register(TeamGroup)
+class TeamGroupAdmin(admin.ModelAdmin):
+    list_display = ('name', 'manager', 'created_at')
+    list_filter = ('manager',)
+    search_fields = ('name', 'manager__username')
+    inlines = (TeamGroupLeaderInline, TeamGroupMemberInline)
