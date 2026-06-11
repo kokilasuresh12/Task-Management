@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from urllib.parse import urlparse
-from .models import Task, ProgressUpdate
+from .models import Task, ProgressUpdate, TaskSubmission
 
 
 class TaskForm(forms.ModelForm):
@@ -79,6 +79,37 @@ class MeetLinkForm(forms.ModelForm):
 
         labels = {
             'google_meet_link': 'Google Meet link',
+        }
+
+
+class TaskSubmissionForm(forms.ModelForm):
+
+    class Meta:
+        model = TaskSubmission
+
+        fields = [
+            'work_file',
+            'note',
+        ]
+
+        labels = {
+            'work_file': 'Work file, image, or zipped folder',
+            'note': 'Note',
+        }
+
+        widgets = {
+            'work_file': forms.ClearableFileInput(
+                attrs={
+                    'class': 'form-control form-control-sm',
+                }
+            ),
+            'note': forms.Textarea(
+                attrs={
+                    'class': 'form-control form-control-sm',
+                    'rows': 2,
+                    'placeholder': 'Short note for your team leader',
+                }
+            ),
         }
 
         widgets = {

@@ -39,6 +39,7 @@
     <th>Status</th>
     <th>Progress</th>
     <th>Updates</th>
+    <th>Submitted Work</th>
     <th>Action</th>
 </tr>
 
@@ -57,6 +58,21 @@
         {{ p.progress }}% - {{ p.comment }} <br>
     {% empty %}
         No updates
+    {% endfor %}
+</td>
+
+<td>
+    {% for submission in task.submissions.all %}
+        <div class="mb-2">
+            <a href="{{ submission.work_file.url }}" target="_blank" rel="noopener">
+                {{ submission.work_file.name }}
+            </a>
+            {% if submission.note %}
+                <div class="small text-secondary">{{ submission.note }}</div>
+            {% endif %}
+        </div>
+    {% empty %}
+        <span class="text-secondary">No files</span>
     {% endfor %}
 </td>
 

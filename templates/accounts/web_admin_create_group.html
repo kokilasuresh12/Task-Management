@@ -1,77 +1,300 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Group</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background:#f6f7fb; color:#1f2937; }
-        .app-shell { max-width:900px; margin:0 auto; padding:28px 16px 48px; }
-        .topbar { background:#fff; border-bottom:1px solid #e5e7eb; }
-        .panel { background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:22px; }
-        label { font-weight:600; margin-bottom:6px; }
-        input, select, textarea {
-            width:100%;
-            padding:9px 11px;
-            border:1px solid #d1d5db;
-            border-radius:6px;
+        :root {
+            --bg: #f4f6f9;
+            --surface: #ffffff;
+            --surface-soft: #f8fafc;
+            --border: #d9e0ea;
+            --text: #172033;
+            --muted: #64748b;
+            --primary: #1f5eff;
+            --primary-dark: #1746bf;
+            --danger: #b42318;
+            --shadow: 0 18px 42px rgba(23, 32, 51, 0.08);
         }
-        input[type="checkbox"] {
-            width:auto;
-            margin-right:8px;
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
         }
-        .checkbox-group ul {
-            list-style:none;
-            padding-left:0;
-            margin-bottom:0;
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.96);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(10px);
         }
-        .checkbox-group li {
-            margin-bottom:6px;
+
+        .app-shell {
+            width: min(1040px, calc(100% - 32px));
+            margin: 0 auto;
         }
-        .allocation-row {
-            display:grid;
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
-            gap:12px;
-            align-items:end;
-            margin-bottom:12px;
+
+        .topbar-inner {
+            min-height: 68px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
         }
-        .row-actions {
-            display:flex;
-            gap:6px;
-            justify-content:flex-end;
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text);
+            font-weight: 750;
+            text-decoration: none;
         }
-        .icon-btn {
-            width:38px;
-            height:38px;
-            padding:0;
-            font-size:20px;
-            line-height:1;
+
+        .brand-mark {
+            width: 34px;
+            height: 34px;
+            display: grid;
+            place-items: center;
+            border-radius: 8px;
+            background: #e8efff;
+            color: var(--primary);
+            font-weight: 800;
         }
+
+        .nav-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .btn {
+            border-radius: 7px;
+            font-weight: 650;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 8px 20px rgba(31, 94, 255, 0.18);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+
+        .btn-outline-secondary {
+            --bs-btn-color: #475569;
+            --bs-btn-border-color: #cbd5e1;
+            --bs-btn-hover-bg: #f1f5f9;
+            --bs-btn-hover-color: #172033;
+            --bs-btn-hover-border-color: #b8c4d4;
+        }
+
+        .page-header {
+            padding: 34px 0 22px;
+        }
+
+        .eyebrow {
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: .08em;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .page-title {
+            margin: 0;
+            font-size: clamp(28px, 4vw, 38px);
+            font-weight: 800;
+            line-height: 1.08;
+        }
+
+        .page-subtitle {
+            max-width: 720px;
+            margin: 10px 0 0;
+            color: var(--muted);
+        }
+
+        .panel {
+            margin-bottom: 48px;
+            overflow: hidden;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        .panel-header {
+            padding: 18px 22px;
+            background: var(--surface-soft);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 760;
+        }
+
+        .panel-body {
+            padding: 24px;
+        }
+
+        label {
+            color: #334155;
+            font-size: 13px;
+            font-weight: 750;
+            margin-bottom: 7px;
+        }
+
+        input,
+        select,
+        textarea,
         .form-select {
-            width:100%;
-            padding:9px 11px;
-            border:1px solid #d1d5db;
-            border-radius:6px;
+            width: 100%;
+            min-height: 42px;
+            padding: 9px 12px;
+            color: var(--text);
+            background-color: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
+            outline: none;
+            transition: border-color .16s ease, box-shadow .16s ease;
         }
+
+        input:focus,
+        select:focus,
+        textarea:focus,
+        .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(31, 94, 255, 0.12);
+        }
+
+        input[type="checkbox"] {
+            width: auto;
+            min-height: auto;
+            margin-right: 8px;
+        }
+
+        .allocation-section {
+            margin-top: 24px;
+            padding-top: 22px;
+            border-top: 1px solid var(--border);
+        }
+
+        .allocation-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .allocation-title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 760;
+        }
+
+        .allocation-note {
+            margin: 5px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .allocation-row {
+            display: grid;
+            grid-template-columns: minmax(180px, .85fr) minmax(260px, 1.35fr) auto;
+            gap: 14px;
+            align-items: end;
+            margin-bottom: 14px;
+            padding: 16px;
+            background: #fbfdff;
+            border: 1px solid #e5ebf3;
+            border-radius: 8px;
+        }
+
         .member-select {
-            min-height:120px;
+            min-height: 148px;
         }
+
+        .row-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .icon-btn {
+            width: 42px;
+            height: 42px;
+            padding: 0;
+            font-size: 22px;
+            line-height: 1;
+        }
+
+        .errorlist {
+            margin: 8px 0 0;
+            padding: 10px 12px;
+            color: var(--danger);
+            background: #fff1f0;
+            border: 1px solid #ffd4cf;
+            border-radius: 7px;
+            list-style-position: inside;
+        }
+
+        .form-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 26px;
+            padding-top: 22px;
+            border-top: 1px solid var(--border);
+        }
+
         @media (max-width: 767px) {
+            .app-shell {
+                width: min(100% - 24px, 1040px);
+            }
+
+            .topbar-inner {
+                align-items: flex-start;
+                flex-direction: column;
+                padding: 14px 0;
+            }
+
+            .panel-body {
+                padding: 18px;
+            }
+
+            .allocation-head,
             .allocation-row {
                 grid-template-columns: 1fr;
             }
+
             .row-actions {
-                justify-content:flex-start;
+                justify-content: flex-start;
             }
         }
-        .errorlist { color:#b42318; background:#fee4e2; border:1px solid #fecdca; border-radius:6px; padding:10px 12px; list-style-position:inside; }
     </style>
 </head>
 <body>
 
 <div class="topbar">
-    <div class="app-shell py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <strong>Task Management</strong>
-        <div class="d-flex gap-2 flex-wrap">
+    <div class="app-shell topbar-inner">
+        <a href="{% url 'web_admin_dashboard' %}" class="brand">
+            <span class="brand-mark">TM</span>
+            <span>Task Management</span>
+        </a>
+        <div class="nav-actions">
             <a href="{% url 'web_admin_dashboard' %}" class="btn btn-sm btn-outline-secondary">Dashboard</a>
             <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-danger">Logout</a>
         </div>
@@ -79,129 +302,142 @@
 </div>
 
 <main class="app-shell">
-    <h1 class="fw-bold">Create Group</h1>
-    <p class="text-secondary mb-4">Create a group, choose a manager, assign TLs, and allocate members to each TL</p>
+    <section class="page-header">
+        <div class="eyebrow">Group Administration</div>
+        <h1 class="page-title">Create Group</h1>
+        <p class="page-subtitle">Define the reporting structure by assigning a manager, team leaders, and members in one controlled workflow.</p>
+    </section>
 
-    <div class="panel">
-        <form method="POST">
-            {% csrf_token %}
+    <section class="panel">
+        <div class="panel-header">
+            <h2 class="panel-title">Group Details</h2>
+        </div>
+        <div class="panel-body">
+            <form method="POST">
+                {% csrf_token %}
 
-            {% if form.non_field_errors %}
-                {{ form.non_field_errors }}
-            {% endif %}
+                {% if form.non_field_errors %}
+                    {{ form.non_field_errors }}
+                {% endif %}
 
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
-                    {{ form.name }}
-                    {{ form.name.errors }}
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+                        {{ form.name }}
+                        {{ form.name.errors }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="{{ form.manager.id_for_label }}">{{ form.manager.label }}</label>
+                        {{ form.manager }}
+                        {{ form.manager.errors }}
+                    </div>
+
+                    <div class="col-12">
+                        {{ form.team_leaders.errors }}
+                    </div>
                 </div>
 
-                <div class="col-md-6">
-                    <label for="{{ form.manager.id_for_label }}">{{ form.manager.label }}</label>
-                    {{ form.manager }}
-                    {{ form.manager.errors }}
-                </div>
-
-                <div class="col-12">
-                    {{ form.team_leaders.errors }}
-                </div>
-            </div>
-
-            <hr class="my-4">
-
-            <h2 class="h5 mb-3">Allocate Team Leaders and Members</h2>
-
-            {% for item in team_leader_member_fields %}
-                {{ item.field.errors }}
-            {% endfor %}
-
-            {% if team_leaders %}
-                <div id="allocationRows">
-                    {% for row in allocation_rows %}
-                        <div class="allocation-row">
-                            <div>
-                                <label>Team Leader</label>
-                                <select name="team_leaders" class="form-select team-leader-select">
-                                    <option value="">Select team leader</option>
-                                    {% for team_leader in team_leaders %}
-                                        <option value="{{ team_leader.id }}" {% if team_leader.id|stringformat:"s" == row.team_leader_id|stringformat:"s" %}selected{% endif %}>
-                                            {{ team_leader.username }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-
-                            <div>
-                                <label>Team Member</label>
-                                <select class="form-select team-member-select member-select" data-selected-members="{{ row.member_ids|join:',' }}" multiple size="6">
-                                    {% for member in member_options %}
-                                        <option value="{{ member.id }}" data-allocated="{% if member.allocated_group %}true{% else %}false{% endif %}" {% if member.allocated_group %}disabled{% endif %} {% if member.id in row.member_ids %}selected{% endif %}>
-                                            {{ member.username }}
-                                            {% if member.allocated_group %}
-                                                - already in {{ member.allocated_group }}
-                                            {% endif %}
-                                        </option>
-                                    {% empty %}
-                                        <option value="" disabled>No team members found</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-
-                            <div class="row-actions">
-                                <button type="button" class="btn btn-outline-primary icon-btn add-allocation" aria-label="Add another team leader">+</button>
-                                <button type="button" class="btn btn-outline-danger icon-btn remove-allocation" aria-label="Delete this team leader">-</button>
-                            </div>
+                <div class="allocation-section">
+                    <div class="allocation-head">
+                        <div>
+                            <h2 class="allocation-title">Team Allocation</h2>
+                            <p class="allocation-note">Assign each member once, under the correct team leader.</p>
                         </div>
+                    </div>
+
+                    {% for item in team_leader_member_fields %}
+                        {{ item.field.errors }}
                     {% endfor %}
-                </div>
-            {% else %}
-                <div class="alert alert-warning mb-0">
-                    Create at least one team leader before creating a group.
-                </div>
-            {% endif %}
 
-            <template id="allocationRowTemplate">
-                <div class="allocation-row">
-                    <div>
-                        <label>Team Leader</label>
-                        <select name="team_leaders" class="form-select team-leader-select">
-                            <option value="">Select team leader</option>
-                            {% for team_leader in team_leaders %}
-                                <option value="{{ team_leader.id }}">{{ team_leader.username }}</option>
+                    {% if team_leaders %}
+                        <div id="allocationRows">
+                            {% for row in allocation_rows %}
+                                <div class="allocation-row">
+                                    <div>
+                                        <label>Team Leader</label>
+                                        <select name="team_leaders" class="form-select team-leader-select">
+                                            <option value="">Select team leader</option>
+                                            {% for team_leader in team_leaders %}
+                                                <option value="{{ team_leader.id }}" {% if team_leader.id|stringformat:"s" == row.team_leader_id|stringformat:"s" %}selected{% endif %}>
+                                                    {{ team_leader.username }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label>Team Member</label>
+                                        <select class="form-select team-member-select member-select" data-selected-members="{{ row.member_ids|join:',' }}" multiple size="6">
+                                            {% for member in member_options %}
+                                                <option value="{{ member.id }}" data-allocated="{% if member.allocated_group %}true{% else %}false{% endif %}" {% if member.allocated_group %}disabled{% endif %} {% if member.id in row.member_ids %}selected{% endif %}>
+                                                    {{ member.username }}
+                                                    {% if member.allocated_group %}
+                                                        - already in {{ member.allocated_group }}
+                                                    {% endif %}
+                                                </option>
+                                            {% empty %}
+                                                <option value="" disabled>No team members found</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    <div class="row-actions">
+                                        <button type="button" class="btn btn-outline-primary icon-btn add-allocation" aria-label="Add another team leader">+</button>
+                                        <button type="button" class="btn btn-outline-danger icon-btn remove-allocation" aria-label="Delete this team leader">-</button>
+                                    </div>
+                                </div>
                             {% endfor %}
-                        </select>
-                    </div>
-
-                    <div>
-                        <label>Team Member</label>
-                        <select class="form-select team-member-select member-select" multiple size="6">
-                            {% for member in member_options %}
-                                <option value="{{ member.id }}" data-allocated="{% if member.allocated_group %}true{% else %}false{% endif %}" {% if member.allocated_group %}disabled{% endif %}>
-                                    {{ member.username }}
-                                    {% if member.allocated_group %}
-                                        - already in {{ member.allocated_group }}
-                                    {% endif %}
-                                </option>
-                            {% empty %}
-                                <option value="" disabled>No team members found</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="row-actions">
-                        <button type="button" class="btn btn-outline-primary icon-btn add-allocation" aria-label="Add another team leader">+</button>
-                        <button type="button" class="btn btn-outline-danger icon-btn remove-allocation" aria-label="Delete this team leader">-</button>
-                    </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning mb-0">
+                            Create at least one team leader before creating a group.
+                        </div>
+                    {% endif %}
                 </div>
-            </template>
 
-            <div class="d-flex gap-2 mt-4">
-                <button type="submit" class="btn btn-primary">Create Group</button>
-                <a href="{% url 'web_admin_dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
-            </div>
-        </form>
-    </div>
+                <template id="allocationRowTemplate">
+                    <div class="allocation-row">
+                        <div>
+                            <label>Team Leader</label>
+                            <select name="team_leaders" class="form-select team-leader-select">
+                                <option value="">Select team leader</option>
+                                {% for team_leader in team_leaders %}
+                                    <option value="{{ team_leader.id }}">{{ team_leader.username }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>Team Member</label>
+                            <select class="form-select team-member-select member-select" multiple size="6">
+                                {% for member in member_options %}
+                                    <option value="{{ member.id }}" data-allocated="{% if member.allocated_group %}true{% else %}false{% endif %}" {% if member.allocated_group %}disabled{% endif %}>
+                                        {{ member.username }}
+                                        {% if member.allocated_group %}
+                                            - already in {{ member.allocated_group }}
+                                        {% endif %}
+                                    </option>
+                                {% empty %}
+                                    <option value="" disabled>No team members found</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="row-actions">
+                            <button type="button" class="btn btn-outline-primary icon-btn add-allocation" aria-label="Add another team leader">+</button>
+                            <button type="button" class="btn btn-outline-danger icon-btn remove-allocation" aria-label="Delete this team leader">-</button>
+                        </div>
+                    </div>
+                </template>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Create Group</button>
+                    <a href="{% url 'web_admin_dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </section>
 </main>
 
 <script>

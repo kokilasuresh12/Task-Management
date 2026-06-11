@@ -351,7 +351,10 @@ def tl_dashboard(request):
 
     tasks = Task.objects.filter(
         project__assigned_tl=request.user
-    )
+    ).select_related(
+        'project',
+        'assigned_member'
+    ).prefetch_related('submissions')
 
     submitted_tasks = tasks.filter(
         status='submitted'
@@ -381,12 +384,12 @@ def member_dashboard(request):
     if request.user.role == 'member':
         assigned_tasks = Task.objects.filter(
             assigned_member=request.user
-        )
+        ).select_related('project').prefetch_related('submissions')
         page_subtitle = 'Your assigned task progress'
     else:
         assigned_tasks = Task.objects.filter(
             assigned_member__role='member'
-        )
+        ).select_related('project', 'assigned_member').prefetch_related('submissions')
         page_subtitle = 'Admin view of all team member work'
 
     total_tasks = assigned_tasks.count()
@@ -416,6 +419,7 @@ def member_dashboard(request):
         'pending_tasks': pending_tasks,
         'progress_percentage': progress_percentage,
         'review_tasks': review_tasks,
+        'assigned_tasks': assigned_tasks,
         'page_subtitle': page_subtitle,
     }
 

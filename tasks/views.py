@@ -50,9 +50,9 @@ def task_list(request):
     if request.user.role == 'tl':
         tasks = Task.objects.filter(
             project__assigned_tl=request.user
-        )
+        ).prefetch_related('submissions')
     elif request.user.role == 'manager' or request.user.is_superuser:
-        tasks = Task.objects.all()
+        tasks = Task.objects.all().prefetch_related('submissions')
     else:
         return redirect('member_tasks')
 
@@ -68,13 +68,52 @@ def member_tasks(request):
 
     tasks = Task.objects.filter(
         assigned_member=request.user
-    )
+    ).prefetch_related('submissions')
 
     return render(
         request,
         'tasks/member_tasks.html',
         {'tasks': tasks}
     )
+
+
+@login_required
+def submit_work(request, task_id):
+
+    if request.user.role != 'member':
+        return redirect('login')
+
+    task = get_object_or_404(
+        Task,
+        id=task_id,
+        assigned_member=request.user
+    )
+
+    if request.method == 'POST':
+        uploaded_files = (
+            request.FILES.getlist('work_files') +
+            request.FILES.getlist('folder_files')
+        )
+        note = request.POST.get('note', '')
+
+        if uploaded_files:
+            for uploaded_file in uploaded_files:
+                task.submissions.create(
+                    submitted_by=request.user,
+                    work_file=uploaded_file,
+                    note=note
+                )
+
+            task.status = 'submitted'
+            task.progress = 100
+            task.save(update_fields=['status', 'progress'])
+            update_project_status(task.project)
+
+            messages.success(request, 'Your work was shared with your team leader.')
+        else:
+            messages.error(request, 'Please choose at least one file, image, or folder.')
+
+    return redirect('member_dashboard')
 
 
 @login_required

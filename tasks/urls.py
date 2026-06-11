@@ -28,6 +28,12 @@ urlpatterns = [
     ),
 
     path(
+        'submit-work/<int:task_id>/',
+        views.submit_work,
+        name='submit_work'
+    ),
+
+    path(
         'history/<int:task_id>/',
         views.progress_history,
         name='progress_history'

@@ -69,3 +69,33 @@ class ProgressUpdate(models.Model):
 
     def __str__(self):
         return self.task.task_name
+
+
+class TaskSubmission(models.Model):
+
+    task = models.ForeignKey(
+        Task,
+        on_delete=models.CASCADE,
+        related_name='submissions'
+    )
+
+    submitted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        limit_choices_to={'role': 'member'}
+    )
+
+    work_file = models.FileField(
+        upload_to='task_submissions/'
+    )
+
+    note = models.TextField(
+        blank=True
+    )
+
+    uploaded_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    def __str__(self):
+        return f'{self.task.task_name} - {self.submitted_by}'
