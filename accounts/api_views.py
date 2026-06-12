@@ -146,6 +146,30 @@ def json_error(message, status=400, errors=None):
     return JsonResponse(body, status=status)
 
 
+def send_password_email(user, raw_password, subject):
+    if not user.email:
+        return False, 'User has no email address.'
+    if not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD:
+        return False, 'Email settings are not configured.'
+
+    try:
+        send_mail(
+            subject=subject,
+            message=(
+                f'Hello {user.username},\n\n'
+                f'Username: {user.username}\n'
+                f'Password: {raw_password}\n'
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            fail_silently=False,
+        )
+    except Exception as error:
+        return False, str(error)
+
+    return True, ''
+
+
 @require_http_methods(['GET'])
 def session_view(request):
     return JsonResponse({
@@ -269,21 +293,17 @@ def users_view(request):
 
     raw_password = form.cleaned_data['password1']
     user = form.save()
+    email_sent, email_error = send_password_email(
+        user,
+        raw_password,
+        'Your task management account has been created',
+    )
 
-    if user.email and settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD:
-        send_mail(
-            subject='Your task management account has been created',
-            message=(
-                f'Hello {user.username},\n\n'
-                f'Username: {user.username}\n'
-                f'Password: {raw_password}\n'
-            ),
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            fail_silently=True,
-        )
-
-    return JsonResponse({'user': user_json(user)}, status=201)
+    return JsonResponse({
+        'user': user_json(user),
+        'passwordEmailSent': email_sent,
+        'passwordEmailError': email_error,
+    }, status=201)
 
 
 @login_required
@@ -307,15 +327,29 @@ def user_detail_view(request, user_id):
                 value = None
             setattr(user, field, value)
 
-    if data.get('password'):
-        user.set_password(data['password'])
+    raw_password = data.get('password')
+    if raw_password:
+        user.set_password(raw_password)
 
     try:
         user.save()
     except IntegrityError:
         return json_error('Username or phone number is already used.', status=422)
 
-    return JsonResponse({'user': user_json(user)})
+    email_sent = None
+    email_error = ''
+    if raw_password:
+        email_sent, email_error = send_password_email(
+            user,
+            raw_password,
+            'Your task management password has been updated',
+        )
+
+    return JsonResponse({
+        'user': user_json(user),
+        'passwordEmailSent': email_sent,
+        'passwordEmailError': email_error,
+    })
 
 
 @login_required

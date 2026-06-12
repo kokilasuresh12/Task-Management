@@ -91,9 +91,9 @@ function App() {
   async function mutate(action, success) {
     setBusy(true);
     try {
-      await action();
+      const result = await action();
       await loadBootstrap();
-      setNotice(success);
+      setNotice(typeof success === 'function' ? success(result) : success);
     } catch (error) {
       setNotice(error.message);
     } finally {
@@ -510,7 +510,14 @@ function UsersTable({ data, busy, api, mutate }) {
                   <td>
                     <div className="actions">
                       <button className="primaryButton" disabled={busy} onClick={() => {
-                        mutate(() => api(`/users/${item.id}/`, { method: 'PATCH', body: JSON.stringify(values) }), 'User updated.');
+                        mutate(
+                          () => api(`/users/${item.id}/`, { method: 'PATCH', body: JSON.stringify(values) }),
+                          (result) => {
+                            if (!values.password) return 'User updated.';
+                            if (result.passwordEmailSent) return 'User updated and new password emailed.';
+                            return `User updated, but password email was not sent: ${result.passwordEmailError}`;
+                          },
+                        );
                         setEditingId(null);
                       }}>Save</button>
                       <button disabled={busy} onClick={() => setEditingId(null)}>Cancel</button>
