@@ -42,7 +42,7 @@ if ENV_PATH.exists():
 SECRET_KEY = 'django-insecure-#_(bt!!jec5wvng5m(q5nyu4&y&8(jfs0gh73agjt9=^+q8xk@'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     "web-production-4a5ca2.up.railway.app",
