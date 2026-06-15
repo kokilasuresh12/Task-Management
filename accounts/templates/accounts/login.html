@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — Task Management</title>
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: #1a1a2e;
+        }
+
+        .login-wrapper {
+            width: 100%;
+            max-width: 420px;
+            padding: 1rem;
+        }
+
+        .login-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            padding: 2.5rem 2rem;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-header h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            letter-spacing: -0.3px;
+        }
+
+        .login-header p {
+            margin-top: 0.4rem;
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+
+        .error-banner {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            color: #b91c1c;
+            font-size: 0.875rem;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .error-banner::before {
+            content: "⚠";
+            flex-shrink: 0;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.4rem;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 0.65rem 0.875rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: #1a1a2e;
+            background-color: #f9fafb;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+            outline: none;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+            background-color: #ffffff;
+        }
+
+        .role-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .role-group label.group-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.6rem;
+        }
+
+        .role-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .role-option {
+            position: relative;
+        }
+
+        .role-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .role-option label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.55rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #4b5563;
+            background-color: #f9fafb;
+            cursor: pointer;
+            transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+            user-select: none;
+        }
+
+        .role-option input[type="radio"]:checked + label {
+            border-color: #4f46e5;
+            background-color: #eef2ff;
+            color: #4338ca;
+            font-weight: 600;
+        }
+
+        .role-option label:hover {
+            border-color: #a5b4fc;
+            background-color: #f5f3ff;
+        }
+
+        .role-icon {
+            font-size: 1rem;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #4f46e5;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.15s ease, transform 0.1s ease;
+            margin-top: 0.5rem;
+        }
+
+        .btn-login:hover {
+            background-color: #4338ca;
+        }
+
+        .btn-login:active {
+            transform: scale(0.99);
+        }
+    </style>
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-card">
+            <div class="login-header">
+                <h1>Task Management</h1>
+                <p>Sign in to your account</p>
+            </div>
+
+            {% if error %}
+            <div class="error-banner" role="alert">
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <form method="POST" action="">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label for="id_username">Username</label>
+                    {{ form.username }}
+                </div>
+
+                <div class="form-group">
+                    <label for="id_password">Password</label>
+                    {{ form.password }}
+                </div>
+
+                <div class="role-group">
+                    <label class="group-label">Sign in as</label>
+                    <div class="role-options">
+                        <div class="role-option">
+                            <input type="radio" name="role" id="role_admin" value="admin">
+                            <label for="role_admin">
+                                <span class="role-icon">🛡️</span> Admin
+                            </label>
+                        </div>
+                        <div class="role-option">
+                            <input type="radio" name="role" id="role_manager" value="manager">
+                            <label for="role_manager">
+                                <span class="role-icon">📊</span> Manager
+                            </label>
+                        </div>
+                        <div class="role-option">
+                            <input type="radio" name="role" id="role_tl" value="tl">
+                            <label for="role_tl">
+                                <span class="role-icon">👥</span> Team Lead
+                            </label>
+                        </div>
+                        <div class="role-option">
+                            <input type="radio" name="role" id="role_member" value="member">
+                            <label for="role_member">
+                                <span class="role-icon">✅</span> Member
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-login">Sign In</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
