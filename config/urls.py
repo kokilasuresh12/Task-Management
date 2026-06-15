@@ -26,6 +26,7 @@ def home(request):
 
 urlpatterns = [
     path('', home),                              # ← fixes root 404
+    path('accounts/', include('accounts.urls')),
     path('admin/', admin.site.urls),
     path('api/', include('accounts.api_urls')),
 ]
