@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login — Task Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;850&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after {
             box-sizing: border-box;
@@ -11,242 +14,373 @@
             padding: 0;
         }
 
+        :root {
+            --bg: #f4f7fb;
+            --surface: #ffffff;
+            --border: #d8e2ea;
+            --text: #172033;
+            --muted: #64748b;
+            --primary: #176b87;
+            --primary-deep: #0f5166;
+            --primary-soft: #e1f3f5;
+            --secondary: #5b5fc7;
+            --secondary-soft: #ececff;
+            --accent: #c47f2f;
+            --accent-soft: #fff3df;
+            --danger: #b42318;
+            --danger-soft: #fff0ee;
+            --shadow: 0 20px 48px rgba(23, 32, 51, .09);
+            --ring: 0 0 0 4px rgba(23, 107, 135, .14);
+        }
+
+        html {
+            min-width: 320px;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f0f2f5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font: 14px/1.5 Inter, "Segoe UI", system-ui, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at 6% 0%, rgba(23, 107, 135, .14), transparent 30rem),
+                radial-gradient(circle at 88% 12%, rgba(196, 127, 47, .12), transparent 26rem),
+                linear-gradient(135deg, var(--bg), #eef4f8 42%, #fbfcff);
+            display: grid;
             min-height: 100vh;
-            color: #1a1a2e;
+            padding: 24px;
+            place-items: center;
         }
 
-        .login-wrapper {
-            width: 100%;
-            max-width: 420px;
-            padding: 1rem;
-        }
-
-        .login-card {
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-            padding: 2.5rem 2rem;
-        }
-
-        .login-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .login-header h1 {
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: #1a1a2e;
-            letter-spacing: -0.3px;
-        }
-
-        .login-header p {
-            margin-top: 0.4rem;
-            font-size: 0.9rem;
-            color: #6b7280;
-        }
-
-        .error-banner {
-            background-color: #fef2f2;
-            border: 1px solid #fecaca;
+        /* ── Login panel ── */
+        .loginPanel {
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, .98), rgba(250, 252, 255, .95)),
+                var(--surface);
+            border: 1px solid rgba(216, 226, 234, .95);
             border-radius: 8px;
-            color: #b91c1c;
-            font-size: 0.875rem;
-            padding: 0.75rem 1rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            box-shadow: var(--shadow);
+            max-width: 472px;
+            padding: 30px;
+            width: 100%;
         }
 
-        .error-banner::before {
-            content: "⚠";
+        /* ── Brand mark ── */
+        .brand {
+            align-items: center;
+            color: #101828;
+            display: flex;
+            font-weight: 850;
+            gap: 10px;
+            letter-spacing: .01em;
+            margin-bottom: 22px;
+        }
+
+        .brandMark {
+            background: linear-gradient(135deg, var(--primary), #28a0a6 55%, var(--accent));
+            border-radius: 8px;
+            box-shadow: 0 10px 20px rgba(23, 107, 135, .22);
+            color: #fff;
+            display: grid;
+            font-size: 12px;
+            font-weight: 900;
+            height: 36px;
+            letter-spacing: .03em;
+            place-items: center;
+            width: 36px;
             flex-shrink: 0;
         }
 
-        .form-group {
-            margin-bottom: 1.25rem;
+        /* ── Page heading ── */
+        .loginPanel h1 {
+            color: #111827;
+            font-size: clamp(26px, 4vw, 36px);
+            letter-spacing: 0;
+            line-height: 1.08;
+            margin: 0 0 8px;
         }
 
-        label {
+        .loginPanel h1::after {
+            background: linear-gradient(90deg, var(--accent), var(--primary));
+            border-radius: 999px;
+            content: "";
             display: block;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 0.4rem;
+            height: 4px;
+            margin-top: 10px;
+            width: 58px;
+        }
+
+        .eyebrow {
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 850;
+            letter-spacing: .08em;
+            margin: 0 0 8px;
+            text-transform: uppercase;
+        }
+
+        .loginPanel > p {
+            color: var(--muted);
+            margin: 6px 0 24px;
+        }
+
+        /* ── Error notice ── */
+        .notice {
+            background: var(--danger-soft);
+            border: 1px solid #f1b8b2;
+            border-radius: 8px;
+            color: var(--danger);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            padding: 12px 14px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .notice::before {
+            content: "⚠";
+            flex-shrink: 0;
+            font-size: 14px;
+        }
+
+        /* ── Form fields ── */
+        .formGrid {
+            display: grid;
+            gap: 14px;
+        }
+
+        .stacked {
+            color: #334155;
+            display: grid;
+            font-weight: 750;
+            gap: 6px;
+        }
+
+        .stacked label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #334155;
         }
 
         input[type="text"],
         input[type="password"] {
+            background: #fff;
+            border: 1px solid #cbd7e3;
+            border-radius: 7px;
+            color: var(--text);
+            font: 14px/1.5 Inter, "Segoe UI", system-ui, sans-serif;
+            min-height: 40px;
+            padding: 9px 11px;
+            transition: border-color .16s ease, box-shadow .16s ease;
             width: 100%;
-            padding: 0.65rem 0.875rem;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            color: #1a1a2e;
-            background-color: #f9fafb;
-            transition: border-color 0.15s ease, box-shadow 0.15s ease;
             outline: none;
+        }
+
+        input[type="text"]::placeholder,
+        input[type="password"]::placeholder {
+            color: #94a3b8;
         }
 
         input[type="text"]:focus,
         input[type="password"]:focus {
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
-            background-color: #ffffff;
+            border-color: var(--primary);
+            box-shadow: var(--ring);
         }
 
-        .role-group {
-            margin-bottom: 1.5rem;
+        /* ── Role grid ── */
+        .roleSection {
+            margin-top: 6px;
         }
 
-        .role-group label.group-label {
-            display: block;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 0.6rem;
+        .roleSection > .stacked > label {
+            margin-bottom: 2px;
         }
 
-        .role-options {
+        .roleGrid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.5rem;
+            gap: 9px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            margin: 10px 0 0;
         }
 
-        .role-option {
-            position: relative;
-        }
-
-        .role-option input[type="radio"] {
-            position: absolute;
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .role-option label {
+        .roleGrid label {
+            border: 1px solid #cbd7e3;
+            border-radius: 8px;
+            color: #334155;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 750;
+            padding: 11px;
+            transition: border-color .16s ease, background .16s ease, box-shadow .16s ease;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 0.4rem;
-            padding: 0.55rem 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #4b5563;
-            background-color: #f9fafb;
-            cursor: pointer;
-            transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+            gap: 7px;
             user-select: none;
         }
 
-        .role-option input[type="radio"]:checked + label {
-            border-color: #4f46e5;
-            background-color: #eef2ff;
-            color: #4338ca;
-            font-weight: 600;
+        .roleGrid input[type="radio"] {
+            margin: 0;
+            min-height: 0;
+            width: auto;
+            accent-color: var(--primary);
+            flex-shrink: 0;
         }
 
-        .role-option label:hover {
-            border-color: #a5b4fc;
-            background-color: #f5f3ff;
+        .roleGrid label:hover {
+            border-color: var(--primary);
+            background: var(--primary-soft);
         }
 
-        .role-icon {
-            font-size: 1rem;
+        /* Per-role selected states */
+        .roleGrid label.selected {
+            background: var(--primary-soft);
+            border-color: var(--primary);
+            box-shadow: var(--ring);
+            color: var(--primary-deep);
         }
 
-        .btn-login {
-            width: 100%;
-            padding: 0.75rem;
-            background-color: #4f46e5;
-            color: #ffffff;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
+        .roleGrid label[data-role="manager"].selected {
+            background: var(--secondary-soft);
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 4px rgba(91, 95, 199, .14);
+            color: #393b91;
+        }
+
+        .roleGrid label[data-role="tl"].selected {
+            background: var(--accent-soft);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(196, 127, 47, .14);
+            color: #7c4a11;
+        }
+
+        .roleGrid label[data-role="member"].selected {
+            background: #fff0f5;
+            border-color: #b64b72;
+            box-shadow: 0 0 0 4px rgba(182, 75, 114, .12);
+            color: #8f3154;
+        }
+
+        /* ── Submit button ── */
+        .primaryButton {
+            align-items: center;
+            background: linear-gradient(135deg, var(--primary), #218c8f 62%, #2f9e8f);
+            border: 1px solid transparent;
+            border-radius: 7px;
+            box-shadow: 0 12px 22px rgba(23, 107, 135, .2);
+            color: #fff;
             cursor: pointer;
-            transition: background-color 0.15s ease, transform 0.1s ease;
-            margin-top: 0.5rem;
+            display: inline-flex;
+            font: 700 14px/1.5 Inter, "Segoe UI", system-ui, sans-serif;
+            gap: 8px;
+            justify-content: center;
+            min-height: 40px;
+            padding: 9px 18px;
+            transition: opacity .16s ease, transform .16s ease, box-shadow .16s ease;
+            width: 100%;
+            margin-top: 6px;
         }
 
-        .btn-login:hover {
-            background-color: #4338ca;
+        .primaryButton:hover {
+            opacity: .92;
+            transform: translateY(-1px);
+            box-shadow: 0 16px 28px rgba(23, 107, 135, .28);
         }
 
-        .btn-login:active {
-            transform: scale(0.99);
+        .primaryButton:active {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 560px) {
+            .roleGrid {
+                grid-template-columns: 1fr;
+            }
+
+            body {
+                padding: 16px;
+            }
+
+            .loginPanel {
+                padding: 24px 20px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="login-wrapper">
-        <div class="login-card">
-            <div class="login-header">
-                <h1>Task Management</h1>
-                <p>Sign in to your account</p>
-            </div>
+    <div class="loginPanel">
 
-            {% if error %}
-            <div class="error-banner" role="alert">
-                {{ error }}
-            </div>
-            {% endif %}
+        <div class="brand">
+            <div class="brandMark">TM</div>
+            <span>Task Management</span>
+        </div>
 
-            <form method="POST" action="">
-                {% csrf_token %}
+        <p class="eyebrow">Welcome back</p>
+        <h1>Sign in</h1>
+        <p>Enter your credentials and select your role to continue.</p>
 
-                <div class="form-group">
+        {% if error %}
+        <div class="notice" role="alert">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST" action="">
+            {% csrf_token %}
+
+            <div class="formGrid">
+
+                <div class="stacked">
                     <label for="id_username">Username</label>
                     {{ form.username }}
                 </div>
 
-                <div class="form-group">
+                <div class="stacked">
                     <label for="id_password">Password</label>
                     {{ form.password }}
                 </div>
 
-                <div class="role-group">
-                    <label class="group-label">Sign in as</label>
-                    <div class="role-options">
-                        <div class="role-option">
+                <div class="roleSection">
+                    <div class="stacked">
+                        <label>Sign in as</label>
+                    </div>
+                    <div class="roleGrid">
+                        <label for="role_admin" data-role="admin">
                             <input type="radio" name="role" id="role_admin" value="admin">
-                            <label for="role_admin">
-                                <span class="role-icon">🛡️</span> Admin
-                            </label>
-                        </div>
-                        <div class="role-option">
+                            🛡️ Admin
+                        </label>
+                        <label for="role_manager" data-role="manager">
                             <input type="radio" name="role" id="role_manager" value="manager">
-                            <label for="role_manager">
-                                <span class="role-icon">📊</span> Manager
-                            </label>
-                        </div>
-                        <div class="role-option">
+                            📊 Manager
+                        </label>
+                        <label for="role_tl" data-role="tl">
                             <input type="radio" name="role" id="role_tl" value="tl">
-                            <label for="role_tl">
-                                <span class="role-icon">👥</span> Team Lead
-                            </label>
-                        </div>
-                        <div class="role-option">
+                            👥 Team Lead
+                        </label>
+                        <label for="role_member" data-role="member">
                             <input type="radio" name="role" id="role_member" value="member">
-                            <label for="role_member">
-                                <span class="role-icon">✅</span> Member
-                            </label>
-                        </div>
+                            ✅ Member
+                        </label>
                     </div>
                 </div>
 
-                <button type="submit" class="btn-login">Sign In</button>
-            </form>
-        </div>
+            </div>
+
+            <button type="submit" class="primaryButton">Sign In →</button>
+        </form>
+
     </div>
+
+    <script>
+        // Highlight the selected role card
+        document.querySelectorAll('.roleGrid input[type="radio"]').forEach(function (radio) {
+            radio.addEventListener('change', function () {
+                document.querySelectorAll('.roleGrid label').forEach(function (lbl) {
+                    lbl.classList.remove('selected');
+                });
+                if (this.checked) {
+                    this.closest('label').classList.add('selected');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
