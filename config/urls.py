@@ -14,7 +14,10 @@ def api_health(request):
 
 
 def frontend_app(request):
-    index_path = settings.BASE_DIR / 'static' / 'frontend' / 'index.html'
+    index_path = settings.STATIC_ROOT / 'frontend' / 'index.html'
+    if not index_path.exists():
+        index_path = settings.BASE_DIR / 'static' / 'frontend' / 'index.html'
+
     if not index_path.exists():
         return JsonResponse({
             'message': 'Frontend is not built yet. Run: cd frontend && npm run build'
