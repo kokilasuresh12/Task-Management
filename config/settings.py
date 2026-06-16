@@ -65,18 +65,23 @@ DEBUG = env_bool('DEBUG', False)
 
 ALLOWED_HOSTS = env_list(
     'ALLOWED_HOSTS',
-    'localhost,127.0.0.1,.up.railway.app'
+    'localhost,127.0.0.1,.up.railway.app,.railway.app'
 )
 CSRF_TRUSTED_ORIGINS = env_list(
     'CSRF_TRUSTED_ORIGINS',
     (
-        'https://*.up.railway.app,'
+        'https://*.up.railway.app,https://*.railway.app,'
         'http://127.0.0.1:5173,http://127.0.0.1:5174,'
         'http://127.0.0.1:5175,http://127.0.0.1:5176,'
         'http://localhost:5173,http://localhost:5174,'
         'http://localhost:5175,http://localhost:5176'
     )
 )
+
+RAILWAY_PUBLIC_DOMAIN = os.environ.get('RAILWAY_PUBLIC_DOMAIN')
+if RAILWAY_PUBLIC_DOMAIN:
+    ALLOWED_HOSTS.append(RAILWAY_PUBLIC_DOMAIN)
+    CSRF_TRUSTED_ORIGINS.append(f'https://{RAILWAY_PUBLIC_DOMAIN}')
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = env_bool('SECURE_SSL_REDIRECT', not DEBUG)
@@ -183,6 +188,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
 STORAGES = {
     'default': {
         'BACKEND': 'django.core.files.storage.FileSystemStorage',
