@@ -13,30 +13,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 
-import os
-from urllib.parse import urlparse
-
-# Parse DATABASE_URL
-if os.getenv('DATABASE_URL'):
-    db_url = urlparse(os.getenv('DATABASE_URL'))
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': db_url.path[1:],  # Remove leading /
-            'USER': db_url.username,
-            'PASSWORD': db_url.password,
-            'HOST': db_url.hostname,
-            'PORT': db_url.port or 5432,
-        }
-    }
-else:
-    # Fallback for local development
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -60,35 +37,57 @@ if ENV_PATH.exists():
 
         os.environ.setdefault(key, value.strip().strip('"').strip("'"))
 
-STATIC_ROOT = BASE_DIR / 'staticfiles'        
+def env_bool(name, default=False):
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
+def env_list(name, default=''):
+    value = os.environ.get(name, default)
+    return [item.strip() for item in value.split(',') if item.strip()]
+
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-#_(bt!!jec5wvng5m(q5nyu4&y&8(jfs0gh73agjt9=^+q8xk@'
+SECRET_KEY = os.environ.get(
+    'SECRET_KEY',
+    'django-insecure-local-dev-key-change-this-before-deploying'
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = env_bool('DEBUG', False)
 
-ALLOWED_HOSTS = [
-    "web-production-4a5ca2.up.railway.app",
-    "localhost",
-    "127.0.0.1",
-]
-CSRF_TRUSTED_ORIGINS = [
-    'https://web-production-4a5ca2.up.railway.app',
+ALLOWED_HOSTS = env_list(
+    'ALLOWED_HOSTS',
+    'localhost,127.0.0.1,.up.railway.app'
+)
+CSRF_TRUSTED_ORIGINS = env_list(
+    'CSRF_TRUSTED_ORIGINS',
+    (
+        'https://*.up.railway.app,'
+        'http://127.0.0.1:5173,http://127.0.0.1:5174,'
+        'http://127.0.0.1:5175,http://127.0.0.1:5176,'
+        'http://localhost:5173,http://localhost:5174,'
+        'http://localhost:5175,http://localhost:5176'
+    )
+)
 
-    'http://127.0.0.1:5173',
-    'http://127.0.0.1:5174',
-    'http://127.0.0.1:5175',
-    'http://127.0.0.1:5176',
-
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'http://localhost:5175',
-    'http://localhost:5176',
-]
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = env_bool('SECURE_SSL_REDIRECT', not DEBUG)
+SESSION_COOKIE_SECURE = env_bool('SESSION_COOKIE_SECURE', not DEBUG)
+CSRF_COOKIE_SECURE = env_bool('CSRF_COOKIE_SECURE', not DEBUG)
+SECURE_HSTS_SECONDS = int(os.environ.get(
+    'SECURE_HSTS_SECONDS',
+    0 if DEBUG else 31536000
+))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool('SECURE_HSTS_INCLUDE_SUBDOMAINS', False)
+SECURE_HSTS_PRELOAD = env_bool('SECURE_HSTS_PRELOAD', False)
 
 
 # Application definition
@@ -141,10 +140,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': DATABASE_PATH,
-    }
+    'default': dj_database_url.config(
+        default=f'sqlite:///{DATABASE_PATH.as_posix()}',
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 
@@ -182,8 +182,16 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
-MEDIA_URL = 'media/'
+STATIC_URL = '/static/'
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
+MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
