@@ -7,9 +7,12 @@ from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 
 from .forms import LoginForm, TeamGroupForm, WebAdminUserCreationForm
-from .models import TeamGroup, TeamGroupMember
-from projects.models import Project
-from tasks.models import Task
+from .models import TeamGroup
+
+
+def frontend_redirect():
+    return redirect('/')
+
 
 def user_login(request):
 
@@ -109,30 +112,7 @@ def web_admin_dashboard(request):
     if not request.user.is_staff and not request.user.is_superuser:
         return redirect('login')
 
-    User = get_user_model()
-    users = User.objects.order_by('role', 'username')
-    groups = TeamGroup.objects.select_related(
-        'manager'
-    ).prefetch_related(
-        'leader_assignments__team_leader',
-        'member_assignments__team_leader',
-        'member_assignments__member'
-    ).order_by('name')
-
-    context = {
-        'total_users': users.count(),
-        'managers': users.filter(role='manager').count(),
-        'team_leaders': users.filter(role='tl').count(),
-        'members': users.filter(role='member').count(),
-        'users': users,
-        'groups': groups,
-    }
-
-    return render(
-        request,
-        'accounts/web_admin_dashboard.html',
-        context
-    )
+    return frontend_redirect()
 
 
 @login_required
@@ -140,6 +120,9 @@ def web_admin_add_user(request):
 
     if not request.user.is_staff and not request.user.is_superuser:
         return redirect('login')
+
+    if request.method == 'GET':
+        return frontend_redirect()
 
     if request.method == 'POST':
         form = WebAdminUserCreationForm(request.POST)
@@ -150,16 +133,9 @@ def web_admin_add_user(request):
             send_new_user_credentials(request, user, raw_password)
             return redirect('web_admin_dashboard')
 
-    else:
-        form = WebAdminUserCreationForm()
+        messages.error(request, 'User could not be created. Please use the app form.')
 
-    return render(
-        request,
-        'accounts/web_admin_add_user.html',
-        {
-            'form': form
-        }
-    )
+    return frontend_redirect()
 
 
 @login_required
@@ -208,86 +184,18 @@ def web_admin_create_group(request):
     if not request.user.is_staff and not request.user.is_superuser:
         return redirect('login')
 
-    if request.method == 'POST':
-        form = TeamGroupForm(request.POST)
+    if request.method != 'POST':
+        return frontend_redirect()
 
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Group created successfully.')
-            return redirect('web_admin_dashboard')
+    form = TeamGroupForm(request.POST)
 
-    else:
-        form = TeamGroupForm()
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Group created successfully.')
+        return redirect('web_admin_dashboard')
 
-    team_leader_member_fields = []
-    allocation_rows = []
-
-    for team_leader in form.fields['team_leaders'].queryset:
-        team_leader_member_fields.append(
-            {
-                'team_leader': team_leader,
-                'field': form[f'members_for_tl_{team_leader.id}'],
-            }
-        )
-
-    if request.method == 'POST':
-        for team_leader_id in request.POST.getlist('team_leaders'):
-            member_ids = [
-                int(member_id)
-                for member_id in request.POST.getlist(f'members_for_tl_{team_leader_id}')
-                if member_id.isdigit()
-            ]
-
-            allocation_rows.append(
-                {
-                    'team_leader_id': team_leader_id,
-                    'member_ids': member_ids,
-                }
-            )
-
-    if not allocation_rows:
-        allocation_rows.append(
-            {
-                'team_leader_id': '',
-                'member_ids': [],
-            }
-        )
-
-    allocated_members = {
-        assignment.member_id: assignment.group.name
-        for assignment in TeamGroupMember.objects.select_related('group')
-    }
-    member_options = []
-
-    for member in get_user_model().objects.filter(
-        role='member'
-    ).order_by('username'):
-        member_options.append(
-            {
-                'id': member.id,
-                'username': member.username,
-                'allocated_group': allocated_members.get(member.id),
-            }
-        )
-
-    return render(
-        request,
-        'accounts/web_admin_create_group.html',
-        {
-            'form': form,
-            'team_leader_member_fields': team_leader_member_fields,
-            'team_leaders': form.fields['team_leaders'].queryset,
-            'member_options': member_options,
-            'available_members': (
-                form.fields[
-                    f'members_for_tl_{form.fields["team_leaders"].queryset.first().id}'
-                ].queryset
-                if form.fields['team_leaders'].queryset.exists()
-                else []
-            ),
-            'allocation_rows': allocation_rows,
-        }
-    )
+    messages.error(request, 'Group could not be created. Please use the app form.')
+    return frontend_redirect()
 
 
 def user_logout(request):
@@ -303,35 +211,7 @@ def manager_dashboard(request):
     if request.user.role != 'manager' and not request.user.is_superuser:
         return redirect('login')
 
-    total_projects = Project.objects.count()
-
-    completed_projects = Project.objects.filter(
-        status='completed'
-    ).count()
-
-    pending_projects = Project.objects.filter(
-        status='pending'
-    ).count()
-
-    total_tasks = Task.objects.count()
-
-    completed_tasks = Task.objects.filter(
-        status='completed'
-    ).count()
-
-    context = {
-        'total_projects': total_projects,
-        'completed_projects': completed_projects,
-        'pending_projects': pending_projects,
-        'total_tasks': total_tasks,
-        'completed_tasks': completed_tasks,
-    }
-
-    return render(
-        request,
-        'accounts/manager_dashboard.html',
-        context
-    )
+    return frontend_redirect()
 
 
 @login_required
@@ -340,39 +220,7 @@ def tl_dashboard(request):
     if request.user.role != 'tl' and not request.user.is_staff and not request.user.is_superuser:
         return redirect('login')
 
-    if request.user.role == 'tl':
-        projects = Project.objects.filter(
-            assigned_tl=request.user
-        )
-        page_subtitle = 'Your assigned projects and review queue'
-    else:
-        projects = Project.objects.all()
-        page_subtitle = 'Admin view of all team leader work'
-
-    tasks = Task.objects.filter(
-        project__assigned_tl=request.user
-    ).select_related(
-        'project',
-        'assigned_member'
-    ).prefetch_related('submissions')
-
-    submitted_tasks = tasks.filter(
-        status='submitted'
-    )
-
-    return render(
-        request,
-        'accounts/tl_dashboard.html',
-        {
-            'projects': projects,
-            'total_projects': projects.count(),
-            'total_tasks': tasks.count(),
-            'submitted_tasks': submitted_tasks.count(),
-            'review_tasks': submitted_tasks,
-            'project_status_choices': Project.STATUS_CHOICES,
-            'page_subtitle': page_subtitle,
-        }
-    )
+    return frontend_redirect()
 
 
 @login_required
@@ -381,50 +229,4 @@ def member_dashboard(request):
     if request.user.role != 'member' and not request.user.is_staff and not request.user.is_superuser:
         return redirect('login')
 
-    if request.user.role == 'member':
-        assigned_tasks = Task.objects.filter(
-            assigned_member=request.user
-        ).select_related('project').prefetch_related('submissions')
-        page_subtitle = 'Your assigned task progress'
-    else:
-        assigned_tasks = Task.objects.filter(
-            assigned_member__role='member'
-        ).select_related('project', 'assigned_member').prefetch_related('submissions')
-        page_subtitle = 'Admin view of all team member work'
-
-    total_tasks = assigned_tasks.count()
-
-    completed_tasks = assigned_tasks.filter(
-        status='completed'
-    ).count()
-
-    pending_tasks = assigned_tasks.exclude(
-        status='completed'
-    ).count()
-
-    review_tasks = assigned_tasks.filter(
-        status='submitted'
-    )
-
-    if total_tasks > 0:
-        progress_percentage = int(
-            (completed_tasks / total_tasks) * 100
-        )
-    else:
-        progress_percentage = 0
-
-    context = {
-        'total_tasks': total_tasks,
-        'completed_tasks': completed_tasks,
-        'pending_tasks': pending_tasks,
-        'progress_percentage': progress_percentage,
-        'review_tasks': review_tasks,
-        'assigned_tasks': assigned_tasks,
-        'page_subtitle': page_subtitle,
-    }
-
-    return render(
-        request,
-        'accounts/member_dashboard.html',
-        context
-    )
+    return frontend_redirect()
