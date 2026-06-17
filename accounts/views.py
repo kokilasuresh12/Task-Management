@@ -140,7 +140,13 @@ def web_admin_add_user(request):
             send_new_user_credentials(request, user, raw_password)
             return redirect('web_admin_dashboard')
 
-        messages.error(request, 'User could not be created. Please use the app form.')
+        # Show form validation errors
+        error_msg = 'User could not be created. '
+        if form.errors:
+            error_msg += 'Errors: ' + ', '.join([f"{k}: {', '.join(v)}" for k, v in form.errors.items()])
+        else:
+            error_msg += 'Please use the app form.'
+        messages.error(request, error_msg)
 
     return frontend_redirect()
 
