@@ -4,7 +4,11 @@ from django.contrib import messages
 from django.contrib.auth.admin import UserAdmin
 from django.conf import settings
 from django.core.mail import send_mail
+import logging
+
 from .models import TeamGroup, TeamGroupLeader, TeamGroupMember, User
+
+logger = logging.getLogger(__name__)
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
@@ -74,6 +78,13 @@ class CustomUserAdmin(UserAdmin):
 
         if not change and obj.email and raw_password:
             login_url = request.build_absolute_uri('/')
+            
+            # Debug: Log the actual values
+            logger.info(f"DEBUG - EMAIL_HOST_USER: '{settings.EMAIL_HOST_USER}'")
+            logger.info(f"DEBUG - EMAIL_HOST_PASSWORD length: {len(settings.EMAIL_HOST_PASSWORD)}")
+            logger.info(f"DEBUG - EMAIL_HOST: '{settings.EMAIL_HOST}'")
+            logger.info(f"DEBUG - EMAIL_PORT: {settings.EMAIL_PORT}")
+            logger.info(f"DEBUG - EMAIL_USE_TLS: {settings.EMAIL_USE_TLS}")
 
             if not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD:
                 self.message_user(
@@ -82,6 +93,7 @@ class CustomUserAdmin(UserAdmin):
                     'EMAIL_HOST_USER and EMAIL_HOST_PASSWORD are required.',
                     level=messages.ERROR,
                 )
+                logger.error("DEBUG - Email check failed: HOST_USER or PASSWORD is empty")
                 return
 
             try:
@@ -105,10 +117,14 @@ class CustomUserAdmin(UserAdmin):
                     f'Login credentials were emailed to {obj.email}.',
                     level=messages.SUCCESS,
                 )
+                logger.info(f"DEBUG - Email sent successfully to {obj.email}")
             except Exception as error:
                 self.message_user(
                     request,
                     f'User was created, but email was not sent: {error}',
+                    level=messages.ERROR,
+                )
+                logger.error(f"DEBUG - Email sending failed: {error}")
                     level=messages.ERROR,
                 )
 

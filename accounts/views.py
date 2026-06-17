@@ -5,9 +5,12 @@ from django.contrib import messages
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
+import logging
 
 from .forms import LoginForm, TeamGroupForm, WebAdminUserCreationForm
 from .models import TeamGroup
+
+logger = logging.getLogger(__name__)
 
 
 def frontend_redirect():
@@ -71,12 +74,21 @@ def user_login(request):
 
 
 def send_new_user_credentials(request, user, raw_password):
+    # Debug: Log the actual values
+    logger.info(f"DEBUG - EMAIL_HOST_USER: '{settings.EMAIL_HOST_USER}'")
+    logger.info(f"DEBUG - EMAIL_HOST_PASSWORD length: {len(settings.EMAIL_HOST_PASSWORD)}")
+    logger.info(f"DEBUG - EMAIL_HOST: '{settings.EMAIL_HOST}'")
+    logger.info(f"DEBUG - EMAIL_PORT: {settings.EMAIL_PORT}")
+    logger.info(f"DEBUG - EMAIL_USE_TLS: {settings.EMAIL_USE_TLS}")
+    logger.info(f"DEBUG - DEFAULT_FROM_EMAIL: '{settings.DEFAULT_FROM_EMAIL}'")
+    
     if not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD:
         messages.error(
             request,
             'User was created, but email was not sent. '
             'EMAIL_HOST_USER and EMAIL_HOST_PASSWORD are required.'
         )
+        logger.error("DEBUG - Email check failed: HOST_USER or PASSWORD is empty")
         return
 
     try:
@@ -99,11 +111,13 @@ def send_new_user_credentials(request, user, raw_password):
             request,
             f'User created and credentials emailed to {user.email}.'
         )
+        logger.info(f"DEBUG - Email sent successfully to {user.email}")
     except Exception as error:
         messages.error(
             request,
             f'User was created, but email was not sent: {error}'
         )
+        logger.error(f"DEBUG - Email sending failed: {error}")
 
 
 @login_required
