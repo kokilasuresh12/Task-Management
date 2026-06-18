@@ -7,19 +7,20 @@ from django.core.mail import send_mail
 
 from .models import TeamGroup, TeamGroupLeader, TeamGroupMember, User
 
+
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets + (
         (
-            'Additional information',
+            "Additional information",
             {
-                'fields': (
-                    'role',
-                    'phone_number',
-                    'dob',
-                    'age',
-                    'salary',
-                    'address',
+                "fields": (
+                    "role",
+                    "phone_number",
+                    "dob",
+                    "age",
+                    "salary",
+                    "address",
                 )
             },
         ),
@@ -27,41 +28,41 @@ class CustomUserAdmin(UserAdmin):
 
     add_fieldsets = UserAdmin.add_fieldsets + (
         (
-            'Additional information',
+            "Additional information",
             {
-                'fields': (
-                    'email',
-                    'role',
-                    'phone_number',
-                    'dob',
-                    'age',
-                    'salary',
-                    'address',
+                "fields": (
+                    "email",
+                    "role",
+                    "phone_number",
+                    "dob",
+                    "age",
+                    "salary",
+                    "address",
                 )
             },
         ),
     )
 
     list_display = (
-        'username',
-        'role',
-        'email',
-        'is_staff',
-        'is_active',
+        "username",
+        "role",
+        "email",
+        "is_staff",
+        "is_active",
     )
 
     list_filter = (
-        'role',
-        'is_staff',
-        'is_superuser',
-        'is_active',
+        "role",
+        "is_staff",
+        "is_superuser",
+        "is_active",
     )
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
 
-        if obj is None and 'email' in form.base_fields:
-            form.base_fields['email'].required = True
+        if obj is None and "email" in form.base_fields:
+            form.base_fields["email"].required = True
 
         return form
 
@@ -69,13 +70,13 @@ class CustomUserAdmin(UserAdmin):
         raw_password = None
 
         if not change:
-            raw_password = form.cleaned_data.get('password1')
+            raw_password = form.cleaned_data.get("password1")
 
         super().save_model(request, obj, form, change)
 
         if not change and obj.email and raw_password:
-            login_url = request.build_absolute_uri('/')
-            
+            login_url = request.build_absolute_uri("/")
+
             debug_info = (
                 f"HOST_USER='{settings.EMAIL_HOST_USER}' | "
                 f"PWD_LEN={len(settings.EMAIL_HOST_PASSWORD)} | "
@@ -87,22 +88,22 @@ class CustomUserAdmin(UserAdmin):
             if not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD:
                 self.message_user(
                     request,
-                    f'User was created, but email was not sent. Email not configured. DEBUG: {debug_info}',
+                    f"User was created, but email was not sent. Email not configured. DEBUG: {debug_info}",
                     level=messages.ERROR,
                 )
                 return
 
             try:
                 send_mail(
-                    subject='Your task management account has been created',
+                    subject="Your task management account has been created",
                     message=(
-                        f'Hello {obj.username},\n\n'
-                        'An account has been created for you in the task '
-                        'management system.\n\n'
-                        f'Username: {obj.username}\n'
-                        f'Password: {raw_password}\n'
-                        f'Login URL: {login_url}\n\n'
-                        'Please log in using these credentials.'
+                        f"Hello {obj.username},\n\n"
+                        "An account has been created for you in the task "
+                        "management system.\n\n"
+                        f"Username: {obj.username}\n"
+                        f"Password: {raw_password}\n"
+                        f"Login URL: {login_url}\n\n"
+                        "Please log in using these credentials."
                     ),
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[obj.email],
@@ -110,15 +111,16 @@ class CustomUserAdmin(UserAdmin):
                 )
                 self.message_user(
                     request,
-                    f'Login credentials were emailed to {obj.email}.',
+                    f"Login credentials were emailed to {obj.email}.",
                     level=messages.SUCCESS,
                 )
             except Exception as error:
                 self.message_user(
                     request,
-                    f'User was created, but email was not sent: {error}. DEBUG: {debug_info}',
+                    f"User was created, but email was not sent: {error}. DEBUG: {debug_info}",
                     level=messages.ERROR,
                 )
+
 
 
 class TeamGroupLeaderInline(admin.TabularInline):
@@ -133,7 +135,7 @@ class TeamGroupMemberInline(admin.TabularInline):
 
 @admin.register(TeamGroup)
 class TeamGroupAdmin(admin.ModelAdmin):
-    list_display = ('name', 'manager', 'created_at')
-    list_filter = ('manager',)
-    search_fields = ('name', 'manager__username')
+    list_display = ("name", "manager", "created_at")
+    list_filter = ("manager",)
+    search_fields = ("name", "manager__username")
     inlines = (TeamGroupLeaderInline, TeamGroupMemberInline)
