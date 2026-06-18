@@ -442,7 +442,13 @@ function CreateUserForm({ busy, mutate, api }) {
     <Panel title="Add User">
       <form className="formGrid" onSubmit={(event) => {
         event.preventDefault();
-        mutate(() => api('/users/', { method: 'POST', body: JSON.stringify(values) }), 'User created.');
+        mutate(
+          () => api('/users/', { method: 'POST', body: JSON.stringify(values) }),
+          (result) => {
+            if (result.passwordEmailSent) return 'User created and password emailed.';
+            return `User created, but password email was not sent: ${result.passwordEmailError}`;
+          }
+        );
       }}>
         <input required placeholder="Username" value={values.username} onChange={(event) => setValues({ ...values, username: event.target.value })} />
         <input required placeholder="Email" type="email" value={values.email} onChange={(event) => setValues({ ...values, email: event.target.value })} />
