@@ -142,10 +142,19 @@ def admin_required(user):
     return user.is_staff or user.is_superuser
 
 
+def serialize_errors(errors):
+    if hasattr(errors, 'get_json_data'):
+        return {
+            field: [item['message'] for item in messages]
+            for field, messages in errors.get_json_data().items()
+        }
+    return errors
+
+
 def json_error(message, status=400, errors=None):
     body = {'error': message}
     if errors:
-        body['errors'] = errors
+        body['errors'] = serialize_errors(errors)
     return JsonResponse(body, status=status)
 
 

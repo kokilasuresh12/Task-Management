@@ -1,0 +1,62 @@
+warning: in the working copy of 'accounts/api_views.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/src/main.jsx', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/accounts/api_views.py b/accounts/api_views.py[m
+[1mindex 0fdb0bb..c053a0a 100644[m
+[1m--- a/accounts/api_views.py[m
+[1m+++ b/accounts/api_views.py[m
+[36m@@ -142,10 +142,19 @@[m [mdef admin_required(user):[m
+     return user.is_staff or user.is_superuser[m
+ [m
+ [m
+[32m+[m[32mdef serialize_errors(errors):[m
+[32m+[m[32m    if hasattr(errors, 'get_json_data'):[m
+[32m+[m[32m        return {[m
+[32m+[m[32m            field: [item['message'] for item in messages][m
+[32m+[m[32m            for field, messages in errors.get_json_data().items()[m
+[32m+[m[32m        }[m
+[32m+[m[32m    return errors[m
+[32m+[m
+[32m+[m
+ def json_error(message, status=400, errors=None):[m
+     body = {'error': message}[m
+     if errors:[m
+[31m-        body['errors'] = errors[m
+[32m+[m[32m        body['errors'] = serialize_errors(errors)[m
+     return JsonResponse(body, status=status)[m
+ [m
+ [m
+[1mdiff --git a/frontend/src/main.jsx b/frontend/src/main.jsx[m
+[1mindex cdfe851..85c7b53 100644[m
+[1m--- a/frontend/src/main.jsx[m
+[1m+++ b/frontend/src/main.jsx[m
+[36m@@ -9,6 +9,19 @@[m [mconst roles = [[m
+   { value: 'member', label: 'Team Member' },[m
+ ];[m
+ [m
+[32m+[m[32mfunction formatApiErrors(errors) {[m
+[32m+[m[32m  if (!errors) return '';[m
+[32m+[m[32m  if (Array.isArray(errors)) return errors.join(', ');[m
+[32m+[m[32m  if (typeof errors === 'string') return errors;[m
+[32m+[m[32m  return Object.entries(errors)[m
+[32m+[m[32m    .map(([field, messages]) => {[m
+[32m+[m[32m      const label = field === '__all__' ? 'Error' : field.replaceAll('_', ' ');[m
+[32m+[m[32m      const text = Array.isArray(messages) ? messages.join(', ') : String(messages);[m
+[32m+[m[32m      return `${label}: ${text}`;[m
+[32m+[m[32m    })[m
+[32m+[m[32m    .join(' ');[m
+[32m+[m[32m}[m
+[32m+[m
+ function App() {[m
+   const [csrfToken, setCsrfToken] = useState('');[m
+   const [user, setUser] = useState(null);[m
+[36m@@ -34,7 +47,9 @@[m [mfunction App() {[m
+       ? await response.json().catch(() => ({}))[m
+       : {};[m
+     if (!response.ok) {[m
+[31m-      throw new Error(body.error || `Request failed (${response.status}).`);[m
+[32m+[m[32m      const details = formatApiErrors(body.errors);[m
+[32m+[m[32m      const message = body.error || `Request failed (${response.status}).`;[m
+[32m+[m[32m      throw new Error(details ? `${message} ${details}` : message);[m
+     }[m
+     return body;[m
+   }[m

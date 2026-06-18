@@ -9,6 +9,19 @@ const roles = [
   { value: 'member', label: 'Team Member' },
 ];
 
+function formatApiErrors(errors) {
+  if (!errors) return '';
+  if (Array.isArray(errors)) return errors.join(', ');
+  if (typeof errors === 'string') return errors;
+  return Object.entries(errors)
+    .map(([field, messages]) => {
+      const label = field === '__all__' ? 'Error' : field.replaceAll('_', ' ');
+      const text = Array.isArray(messages) ? messages.join(', ') : String(messages);
+      return `${label}: ${text}`;
+    })
+    .join(' ');
+}
+
 function App() {
   const [csrfToken, setCsrfToken] = useState('');
   const [user, setUser] = useState(null);
@@ -34,7 +47,9 @@ function App() {
       ? await response.json().catch(() => ({}))
       : {};
     if (!response.ok) {
-      throw new Error(body.error || `Request failed (${response.status}).`);
+      const details = formatApiErrors(body.errors);
+      const message = body.error || `Request failed (${response.status}).`;
+      throw new Error(details ? `${message} ${details}` : message);
     }
     return body;
   }
