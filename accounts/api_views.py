@@ -1,4 +1,5 @@
 import json
+import logging
 
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login, logout
@@ -11,6 +12,8 @@ from django.middleware.csrf import get_token
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
+
+logger = logging.getLogger(__name__)
 
 from accounts.forms import WebAdminUserCreationForm
 from accounts.models import TeamGroup, TeamGroupLeader, TeamGroupMember
@@ -148,11 +151,17 @@ def json_error(message, status=400, errors=None):
 
 def send_password_email(user, raw_password, subject):
     if not user.email:
-        return False, 'User has no email address.'
+        msg = 'User has no email address.'
+        logger.warning(f'Email send failed: {msg} (user_id={user.id})')
+        return False, msg
+
     if not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD:
-        return False, 'Email settings are not configured.'
+        msg = 'Email settings are not configured. EMAIL_HOST_USER or EMAIL_HOST_PASSWORD is missing.'
+        logger.error(msg)
+        return False, msg
 
     try:
+        logger.info(f'Sending password email to {user.email} (subject: {subject})')
         send_mail(
             subject=subject,
             message=(
@@ -164,8 +173,11 @@ def send_password_email(user, raw_password, subject):
             recipient_list=[user.email],
             fail_silently=False,
         )
+        logger.info(f'Password email sent successfully to {user.email}')
     except Exception as error:
-        return False, str(error)
+        error_msg = str(error)
+        logger.error(f'Failed to send password email to {user.email}: {error_msg}')
+        return False, error_msg
 
     return True, ''
 
