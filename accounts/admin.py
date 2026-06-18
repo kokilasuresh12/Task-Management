@@ -119,8 +119,6 @@ class CustomUserAdmin(UserAdmin):
                     f'User was created, but email was not sent: {error}. DEBUG: {debug_info}',
                     level=messages.ERROR,
                 )
-                    level=messages.ERROR,
-                )
 
 
 class TeamGroupLeaderInline(admin.TabularInline):
