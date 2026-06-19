@@ -221,6 +221,17 @@ DEFAULT_FROM_EMAIL = os.environ.get(
     EMAIL_HOST_USER or 'Task Management <noreply@example.com>'
 )
 
+BREVO_API_KEY = os.environ.get('BREVO_API_KEY', '')
+BREVO_SENDER_EMAIL = os.environ.get(
+    'BREVO_SENDER_EMAIL',
+    DEFAULT_FROM_EMAIL,
+)
+BREVO_SENDER_NAME = os.environ.get(
+    'BREVO_SENDER_NAME',
+    'Task Management',
+)
+BREVO_TIMEOUT = int(os.environ.get('BREVO_TIMEOUT', 20))
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

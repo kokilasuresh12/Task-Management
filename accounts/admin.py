@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.contrib import messages
 from django.contrib.auth.admin import UserAdmin
 from django.conf import settings
-from django.core.mail import send_mail
+from config.email_service import send_brevo_email
 
 from .models import TeamGroup, TeamGroupLeader, TeamGroupMember, User
 
@@ -77,24 +77,16 @@ class CustomUserAdmin(UserAdmin):
         if not change and obj.email and raw_password:
             login_url = request.build_absolute_uri("/")
 
-            debug_info = (
-                f"HOST_USER='{settings.EMAIL_HOST_USER}' | "
-                f"PWD_LEN={len(settings.EMAIL_HOST_PASSWORD)} | "
-                f"HOST={settings.EMAIL_HOST} | "
-                f"PORT={settings.EMAIL_PORT} | "
-                f"USE_TLS={settings.EMAIL_USE_TLS}"
-            )
-
-            if not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD:
+            if not settings.BREVO_API_KEY or not settings.BREVO_SENDER_EMAIL:
                 self.message_user(
                     request,
-                    f"User was created, but email was not sent. Email not configured. DEBUG: {debug_info}",
+                    "User was created, but Brevo email is not configured.",
                     level=messages.ERROR,
                 )
                 return
 
             try:
-                send_mail(
+                send_brevo_email(
                     subject="Your task management account has been created",
                     message=(
                         f"Hello {obj.username},\n\n"
@@ -105,9 +97,8 @@ class CustomUserAdmin(UserAdmin):
                         f"Login URL: {login_url}\n\n"
                         "Please log in using these credentials."
                     ),
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[obj.email],
-                    fail_silently=False,
+                    recipient_email=obj.email,
+                    recipient_name=obj.username,
                 )
                 self.message_user(
                     request,
@@ -117,7 +108,7 @@ class CustomUserAdmin(UserAdmin):
             except Exception as error:
                 self.message_user(
                     request,
-                    f"User was created, but email was not sent: {error}. DEBUG: {debug_info}",
+                    f"User was created, but email was not sent: {error}",
                     level=messages.ERROR,
                 )
 

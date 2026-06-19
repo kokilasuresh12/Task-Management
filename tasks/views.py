@@ -1,9 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.core.mail import send_mail
-from django.conf import settings
 from django.utils import timezone
+from config.email_service import send_brevo_email
 from .models import Task, ProgressUpdate
 from .forms import TaskForm, ProgressForm, MeetLinkForm
 
@@ -247,22 +246,30 @@ def share_meet_link(request, task_id):
             ])
 
             if task.assigned_member.email:
-                send_mail(
-                    subject=f'Presentation meeting for {task.task_name}',
-                    message=(
-                        f'Hello {task.assigned_member.username},\n\n'
-                        f'Your team leader has shared a Google Meet link '
-                        f'for presenting your completed work.\n\n'
-                        f'Task: {task.task_name}\n'
-                        f'Project: {task.project}\n'
-                        f'Meet link: {task.google_meet_link}\n\n'
-                        'Please join this meeting and present your work.'
-                    ),
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[task.assigned_member.email],
-                    fail_silently=False,
-                )
-                messages.success(request, 'Google Meet link sent to the member.')
+                try:
+                    send_brevo_email(
+                        subject=f'Presentation meeting for {task.task_name}',
+                        message=(
+                            f'Hello {task.assigned_member.username},\n\n'
+                            f'Your team leader has shared a Google Meet link '
+                            f'for presenting your completed work.\n\n'
+                            f'Task: {task.task_name}\n'
+                            f'Project: {task.project}\n'
+                            f'Meet link: {task.google_meet_link}\n\n'
+                            'Please join this meeting and present your work.'
+                        ),
+                        recipient_email=task.assigned_member.email,
+                        recipient_name=task.assigned_member.username,
+                    )
+                    messages.success(
+                        request,
+                        'Google Meet link sent to the member.',
+                    )
+                except Exception as error:
+                    messages.error(
+                        request,
+                        f'Meet link saved, but email was not sent: {error}',
+                    )
             else:
                 messages.warning(
                     request,

@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
+from config.email_service import send_brevo_email
 
 from .forms import LoginForm, TeamGroupForm, WebAdminUserCreationForm
 from .models import TeamGroup
@@ -71,23 +71,15 @@ def user_login(request):
 
 
 def send_new_user_credentials(request, user, raw_password):
-    debug_info = (
-        f"HOST_USER='{settings.EMAIL_HOST_USER}' | "
-        f"PWD_LEN={len(settings.EMAIL_HOST_PASSWORD)} | "
-        f"HOST={settings.EMAIL_HOST} | "
-        f"PORT={settings.EMAIL_PORT} | "
-        f"USE_TLS={settings.EMAIL_USE_TLS}"
-    )
-    
-    if not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD:
+    if not settings.BREVO_API_KEY or not settings.BREVO_SENDER_EMAIL:
         messages.error(
             request,
-            f'User was created, but email was not sent. Email not configured. DEBUG: {debug_info}'
+            'User was created, but Brevo email is not configured.'
         )
         return
 
     try:
-        send_mail(
+        send_brevo_email(
             subject='Your task management account has been created',
             message=(
                 f'Hello {user.username},\n\n'
@@ -98,9 +90,8 @@ def send_new_user_credentials(request, user, raw_password):
                 f'Login URL: {request.build_absolute_uri("/")}\n\n'
                 'Please log in using these credentials.'
             ),
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            fail_silently=False,
+            recipient_email=user.email,
+            recipient_name=user.username,
         )
         messages.success(
             request,
@@ -109,7 +100,7 @@ def send_new_user_credentials(request, user, raw_password):
     except Exception as error:
         messages.error(
             request,
-            f'User was created, but email was not sent: {error}. DEBUG: {debug_info}'
+            f'User was created, but email was not sent: {error}'
         )
 
 
